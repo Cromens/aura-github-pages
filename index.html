@@ -3974,20 +3974,22 @@ async function exportVideo(){
 
 
 /* =====================================================
-   WIX EMBED BRIDGE
+   WIX MEDIA MANAGER BRIDGE
 
-   Wix places HTML Components inside a sandboxed iframe.
-   The iframe does not receive the allow-downloads sandbox
-   permission, so direct <a download> and showSaveFilePicker()
-   can be blocked when this page is embedded in Wix.
+   In Wix the HTML Component is sandboxed, so direct
+   downloads from the iframe can be blocked by Chrome.
 
-   In Wix mode we send the finished Blob to the parent Wix page
-   with postMessage(). The Wix page code can then perform the
-   download in the top-level page context.
+   Reliable flow:
+     1. HTML asks Wix page for a Media Manager upload URL.
+     2. HTML uploads the finished MP4 directly to Wix using
+        that signed URL. The Blob never travels through
+        postMessage(), so there is no large-payload problem.
+     3. HTML sends only the returned Wix fileUrl to the page.
+     4. Wix backend creates a temporary download URL.
+     5. Wix page opens that download URL with wix-location.
 ===================================================== */
 
 function isEmbeddedPage(){
-
   try{
     return window.self !== window.top;
   }catch(error){
@@ -3995,352 +3997,360 @@ function isEmbeddedPage(){
   }
 }
 
-function getParentOrigin(){
+let wixMediaWaiters = {};
+let wixRequestCounter = 0;
 
-  try{
+function wixRequest(type, payload = {}, timeoutMs = 20000){
 
-    if(document.referrer){
+  return new Promise((resolve, reject) => {
 
-      return new URL(
-        document.referrer
-      ).origin;
-
-    }
-
-  }catch(error){}
-
-  return "*";
-}
-
-let wixDownloadAck = null;
-
-window.addEventListener(
-  "message",
-  (event) => {
-
-    const data = event.data;
-
-    if(
-      !data ||
-      data.source !== "AURA_WIX_BRIDGE"
-    ){
+    if(!isEmbeddedPage()){
+      reject(new Error("AURA не находится внутри Wix iframe."));
       return;
     }
 
-    if(
-      data.type === "DOWNLOAD_ACK"
-    ){
+    const id =
+      "aura_" +
+      Date.now() +
+      "_" +
+      (++wixRequestCounter);
 
-      if(wixDownloadAck){
+    const timer = setTimeout(() => {
+      delete wixMediaWaiters[id];
+      reject(new Error("Wix не ответил вовремя. Проверьте Page Code и ID HTML-компонента."));
+    }, timeoutMs);
 
-        wixDownloadAck(
-          data.ok === true,
-          data.error || ""
-        );
-
-        wixDownloadAck = null;
-
-      }
-
-    }
-
-  }
-);
-
-function sendResultToWix(){
-
-  return new Promise(
-    (resolve, reject) => {
-
-      if(!isEmbeddedPage()){
-
-        reject(
-          new Error(
-            "AURA не находится внутри iframe."
-          )
-        );
-
-        return;
-
-      }
-
-      if(!resultBlob){
-
-        reject(
-          new Error(
-            "Нет готового MP4."
-          )
-        );
-
-        return;
-
-      }
-
-      const filename =
-        fileBaseName(
-          sourceFile &&
-          sourceFile.name
-        ) +
-        "_edited.mp4";
-
-      const targetOrigin =
-        getParentOrigin();
-
-      let finished = false;
-
-      const timer =
-        setTimeout(
-          () => {
-
-            if(finished){
-              return;
-            }
-
-            finished = true;
-            wixDownloadAck = null;
-
-            reject(
-              new Error(
-                "Wix не подтвердил получение файла. Проверьте код страницы Wix."
-              )
-            );
-
-          },
-          5000
-        );
-
-      wixDownloadAck =
-        (ok, errorMessage) => {
-
-          if(finished){
-            return;
-          }
-
-          finished = true;
-          clearTimeout(timer);
-
-          if(ok){
-            resolve(true);
-          }else{
-            reject(
-              new Error(
-                errorMessage ||
-                "Wix не смог скачать файл."
-              )
-            );
-          }
-
-        };
-
-      try{
-
-        window.parent.postMessage(
-          {
-            source:
-              "AURA_WIX_BRIDGE",
-
-            type:
-              "DOWNLOAD_MP4",
-
-            filename:
-              filename,
-
-            mimeType:
-              "video/mp4",
-
-            blob:
-              resultBlob
-          },
-          targetOrigin
-        );
-
-      }catch(error){
-
+    wixMediaWaiters[id] = {
+      resolve: (data) => {
         clearTimeout(timer);
-        wixDownloadAck = null;
+        delete wixMediaWaiters[id];
+        resolve(data);
+      },
+      reject: (error) => {
+        clearTimeout(timer);
+        delete wixMediaWaiters[id];
         reject(error);
-
       }
+    };
 
+    try{
+      window.parent.postMessage({
+        source: "AURA_WIX_MEDIA",
+        type,
+        requestId: id,
+        ...payload
+      }, "*");
+    }catch(error){
+      clearTimeout(timer);
+      delete wixMediaWaiters[id];
+      reject(error);
     }
+  });
+}
+
+window.addEventListener("message", (event) => {
+
+  const data = event.data;
+
+  if(!data || data.source !== "AURA_WIX_MEDIA"){
+    return;
+  }
+
+  if(data.type === "RESPONSE" && data.requestId){
+
+    const waiter = wixMediaWaiters[data.requestId];
+
+    if(!waiter){
+      return;
+    }
+
+    if(data.ok === true){
+      waiter.resolve(data);
+    }else{
+      waiter.reject(
+        new Error(
+          data.error ||
+          "Wix Media Manager operation failed."
+        )
+      );
+    }
+  }
+});
+
+function extractWixFileUrl(value){
+
+  const seen = new Set();
+
+  function walk(v){
+
+    if(typeof v === "string"){
+      if(v.startsWith("wix:")) return v;
+      return null;
+    }
+
+    if(!v || typeof v !== "object"){
+      return null;
+    }
+
+    if(seen.has(v)) return null;
+    seen.add(v);
+
+    if(Array.isArray(v)){
+      for(const item of v){
+        const found = walk(item);
+        if(found) return found;
+      }
+      return null;
+    }
+
+    const preferred = [
+      "fileUrl",
+      "fileURL",
+      "wixFileUrl",
+      "mediaUrl",
+      "url"
+    ];
+
+    for(const key of preferred){
+      if(typeof v[key] === "string" && v[key].startsWith("wix:")){
+        return v[key];
+      }
+    }
+
+    for(const key of Object.keys(v)){
+      const found = walk(v[key]);
+      if(found) return found;
+    }
+
+    return null;
+  }
+
+  return walk(value);
+}
+
+async function requestWixUploadUrl(filename){
+
+  const response = await wixRequest(
+    "REQUEST_UPLOAD_URL",
+    {
+      filename,
+      mimeType: "video/mp4"
+    },
+    20000
   );
+
+  if(!response.uploadUrl){
+    throw new Error("Wix не вернул upload URL для Media Manager.");
+  }
+
+  return response.uploadUrl;
+}
+
+async function uploadResultToWixMediaManager(){
+
+  if(!resultBlob || !resultBlob.size){
+    throw new Error("Нет готового MP4 для загрузки в Wix Media Manager.");
+  }
+
+  if(!isEmbeddedPage()){
+    throw new Error("Media Manager bridge используется только внутри Wix.");
+  }
+
+  const filename =
+    fileBaseName(
+      sourceFile && sourceFile.name
+    ) + "_edited.mp4";
+
+  setStatus(
+    "Получаем защищённую ссылку Wix…",
+    true
+  );
+
+  const uploadUrl =
+    await requestWixUploadUrl(filename);
+
+  setStatus(
+    "Загружаем готовое MP4 в Wix…",
+    true
+  );
+
+  /*
+   * Wix's getUploadUrl() endpoint accepts a multipart upload.
+   * Do not set Content-Type manually here: the browser adds the
+   * required multipart boundary automatically.
+   */
+  const formData = new FormData();
+
+  formData.append(
+    "upload_url",
+    uploadUrl
+  );
+
+  formData.append(
+    "file",
+    resultBlob,
+    filename
+  );
+
+  const response =
+    await fetch(uploadUrl, {
+      method: "POST",
+      body: formData
+    });
+
+  if(!response.ok){
+
+    let details = "";
+
+    try{
+      details = await response.text();
+    }catch(e){}
+
+    throw new Error(
+      "Wix Media Manager upload failed: HTTP " +
+      response.status +
+      (details ? " — " + details.slice(0,300) : "")
+    );
+  }
+
+  let uploadResult = null;
+
+  try{
+    uploadResult = await response.json();
+  }catch(error){
+    uploadResult = null;
+  }
+
+  console.log(
+    "AURA Wix Media upload response:",
+    uploadResult
+  );
+
+  const fileUrl =
+    extractWixFileUrl(uploadResult);
+
+  if(!fileUrl){
+    throw new Error(
+      "Wix принял MP4, но не вернул fileUrl. Откройте Console и проверьте ответ Media Manager."
+    );
+  }
+
+  setStatus(
+    "MP4 загружено в Wix. Готовим скачивание…",
+    true
+  );
+
+  await wixRequest(
+    "REQUEST_DOWNLOAD",
+    {
+      fileUrl,
+      filename
+    },
+    45000
+  );
+
+  setStatus(
+    "Скачивание MP4 запущено через Wix",
+    true
+  );
+
+  return true;
 }
 
 /* =====================================================
-   DOWNLOAD METHOD 1
-   File System Access API
+   DOWNLOAD METHOD 1 — WIX MEDIA MANAGER
+===================================================== */
+
+async function downloadViaWixMediaManager(){
+
+  if(!isEmbeddedPage()){
+    throw new Error("AURA не встроена в Wix.");
+  }
+
+  return uploadResultToWixMediaManager();
+}
+
+/* =====================================================
+   DOWNLOAD METHOD 2 — SAVE PICKER
 ===================================================== */
 
 async function downloadWithSavePicker(){
 
-  if(
-    !resultBlob
-  ){
-
-    throw new Error(
-      "Нет готового файла."
-    );
-
+  if(!resultBlob){
+    throw new Error("Нет готового файла.");
   }
 
-
-  if(
-    typeof window.showSaveFilePicker !==
-      "function"
-  ){
-
-    throw new Error(
-      "Save Picker недоступен."
-    );
-
+  if(typeof window.showSaveFilePicker !== "function"){
+    throw new Error("Save Picker недоступен.");
   }
-
 
   const filename =
     fileBaseName(
-      sourceFile &&
-      sourceFile.name
-    ) +
-    "_edited.mp4";
-
+      sourceFile && sourceFile.name
+    ) + "_edited.mp4";
 
   const handle =
     await window.showSaveFilePicker({
-
-      suggestedName:
-        filename,
-
+      suggestedName: filename,
       types:[
         {
-          description:
-            "MP4 video",
-
-          accept:{
-            "video/mp4":[
-              ".mp4"
-            ]
-          }
+          description: "MP4 video",
+          accept:{"video/mp4":[".mp4"]}
         }
       ]
-
     });
-
 
   const writable =
     await handle.createWritable();
 
-
-  await writable.write(
-    resultBlob
-  );
-
-
+  await writable.write(resultBlob);
   await writable.close();
-
 
   return true;
 }
 
-
 /* =====================================================
-   DOWNLOAD METHOD 2
-   Anchor download
+   DOWNLOAD METHOD 3 — ANCHOR
 ===================================================== */
 
 function downloadWithAnchor(){
 
-  if(
-    !resultURL ||
-    !resultBlob
-  ){
-
-    throw new Error(
-      "Нет готового файла."
-    );
-
+  if(!resultURL || !resultBlob){
+    throw new Error("Нет готового файла.");
   }
-
 
   const filename =
     fileBaseName(
-      sourceFile &&
-      sourceFile.name
-    ) +
-    "_edited.mp4";
-
+      sourceFile && sourceFile.name
+    ) + "_edited.mp4";
 
   const anchor =
-    document.createElement(
-      "a"
-    );
+    document.createElement("a");
 
+  anchor.href = resultURL;
+  anchor.download = filename;
+  anchor.rel = "noopener";
+  anchor.style.display = "none";
 
-  anchor.href =
-    resultURL;
-
-  anchor.download =
-    filename;
-
-  anchor.rel =
-    "noopener";
-
-
-  /*
-   * Add to DOM before click.
-   */
-
-  anchor.style.display =
-    "none";
-
-
-  document.body.appendChild(
-    anchor
-  );
-
-
+  document.body.appendChild(anchor);
   anchor.click();
 
-
-  setTimeout(
-    () => {
-
-      try{
-        anchor.remove();
-      }catch(e){}
-
-    },
-    1000
-  );
-
+  setTimeout(() => {
+    try{ anchor.remove(); }catch(e){}
+  }, 1000);
 
   return true;
 }
 
-
 /* =====================================================
-   DIRECT LINK
-
-   Creates a normal blob: URL for the finished MP4 and
-   opens it in a new top-level tab/window. This is the
-   reliable fallback for Wix when sandboxed downloads are
-   blocked. The browser may display the MP4 instead of
-   forcing a download; the user can then use the browser
-   download control.
+   DIRECT LINK / OPEN RESULT
 ===================================================== */
 
 function openDirectMP4Link(){
 
-  if(
-    !resultURL ||
-    !resultBlob
-  ){
-
-    alert(
-      "Сначала дождитесь завершения обработки."
-    );
-
+  if(!resultURL || !resultBlob){
+    alert("Сначала дождитесь завершения обработки.");
     return;
-
   }
 
   const newWindow =
@@ -4351,73 +4361,36 @@ function openDirectMP4Link(){
     );
 
   if(!newWindow){
-
     alert(
       "Браузер заблокировал новое окно.\n\n" +
       "Разрешите всплывающие окна для сайта Wix."
     );
-
     return;
-
   }
 
-  try{
-    newWindow.focus();
-  }catch(e){}
-
+  try{ newWindow.focus(); }catch(e){}
 }
-
-
-/* =====================================================
-   DOWNLOAD METHOD 3
-   OPEN RESULT
-===================================================== */
 
 function openResult(){
 
-  if(
-    !resultURL ||
-    !resultBlob
-  ){
-
-    alert(
-      "Готового видео пока нет."
-    );
-
+  if(!resultURL || !resultBlob){
+    alert("Готового видео пока нет.");
     return;
   }
 
-
-  /*
-   * This is the most reliable fallback
-   * when Wix/browser blocks download.
-   */
-
   const newWindow =
-    window.open(
-      resultURL,
-      "_blank"
-    );
-
+    window.open(resultURL, "_blank");
 
   if(!newWindow){
-
     alert(
       "Браузер заблокировал новое окно.\n\n" +
       "Разрешите всплывающие окна для сайта Wix."
     );
-
     return;
   }
 
-
-  try{
-
-    newWindow.focus();
-
-  }catch(e){}
+  try{ newWindow.focus(); }catch(e){}
 }
-
 
 /* =====================================================
    SMART DOWNLOAD
@@ -4425,73 +4398,45 @@ function openResult(){
 
 async function smartDownload(){
 
-  if(
-    !resultBlob ||
-    !resultURL
-  ){
-
-    alert(
-      "Сначала дождитесь завершения обработки."
-    );
-
+  if(!resultBlob || !resultURL){
+    alert("Сначала дождитесь завершения обработки.");
     return;
   }
 
-
   /*
-   * METHOD 0 — WIX PARENT BRIDGE
+   * WIX METHOD — PRIMARY
    *
-   * This must be attempted first when AURA is
-   * embedded in a Wix HTML Component.
-   * Wix's sandbox does not grant allow-downloads,
-   * so direct iframe downloads are not reliable.
+   * The MP4 is uploaded directly from the HTML component
+   * to Wix Media Manager. Only the small fileUrl is sent
+   * through postMessage(). Wix then creates a temporary
+   * download URL and starts the download from the parent
+   * page. This avoids the sandbox allow-downloads problem.
    */
 
   if(isEmbeddedPage()){
 
     try{
-
-      setStatus(
-        "Передача MP4 в Wix…",
-        true
-      );
-
-      await sendResultToWix();
-
-      setStatus(
-        "MP4 передан Wix для скачивания",
-        true
-      );
-
+      await downloadViaWixMediaManager();
       return;
-
     }catch(error){
 
-      console.warn(
-        "AURA Wix download bridge unavailable:",
+      console.error(
+        "AURA Wix Media Manager download failed:",
         error
       );
 
       setStatus(
-        "Wix не подтвердил скачивание — пробуем резервный способ…",
+        "Wix Media Manager не сработал — пробуем резервный способ…",
         true
       );
-
     }
-
   }
 
-
   /*
-   * METHOD 1
-   *
-   * Native Save Picker.
-   * Works when AURA is opened directly, but
-   * browsers block it from cross-origin iframes.
+   * DIRECT SITE METHOD
    */
 
   try{
-
     await downloadWithSavePicker();
 
     setStatus(
@@ -4502,24 +4447,17 @@ async function smartDownload(){
     return;
 
   }catch(error){
-
     console.log(
-      "AURA download method 1 unavailable:",
+      "AURA Save Picker unavailable:",
       error
     );
-
   }
 
-
   /*
-   * METHOD 2
-   *
-   * Normal browser download.
-   * This can be blocked by a Wix sandbox.
+   * ANCHOR FALLBACK
    */
 
   try{
-
     downloadWithAnchor();
 
     setStatus(
@@ -4527,37 +4465,21 @@ async function smartDownload(){
       true
     );
 
-    setTimeout(
-      () => {
-
-        setStatus(
-          "Если загрузка не началась — нажмите «Открыть видео»",
-          true
-        );
-
-      },
-      1200
-    );
-
     return;
 
   }catch(error){
-
     console.log(
-      "AURA download method 2 failed:",
+      "AURA anchor download failed:",
       error
     );
-
   }
 
-
   /*
-   * METHOD 3
+   * LAST FALLBACK
    */
 
   openResult();
 }
-
 
 /* =====================================================
    DOWNLOAD BUTTONS
