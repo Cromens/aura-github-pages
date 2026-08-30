@@ -872,13 +872,6 @@ video{
 
           <button
             class="download-open"
-            id="directLinkBtn"
-          >
-            Прямая ссылка на MP4
-          </button>
-
-          <button
-            class="download-open"
             id="openResultBtn"
           >
             Открыть видео
@@ -1101,19 +1094,24 @@ video{
 
 
 <!-- =====================================================
-     FFMPEG.WASM 0.12.15
+     FFMPEG.WASM 0.12.10
      
      ВАЖНО:
      НЕ используем core-mt.
      НЕ используем SharedArrayBuffer.
 ====================================================== -->
 
+<script
+  src="./vendor/ffmpeg.js"
+></script>
+
+
 <script>
 "use strict";
 
 /* =====================================================
    AURA VIDEO EDITOR
-   GitHub Pages-safe FFmpeg WASM 0.12.15
+   Same-origin FFmpeg WASM 0.12.10 for Wix iframe
 ===================================================== */
 
 
@@ -1126,25 +1124,18 @@ const MAX_FILE_MB = 200;
 const FFMPEG_VERSION = "0.12.10";
 
 /*
- * ALL FFMPEG ASSETS ARE SERVED FROM THE SAME GITHUB PAGES SITE.
- * This avoids CDN/CORS/Worker-origin problems.
+ * SINGLE THREAD CORE.
+ *
+ * НЕ меняй на @ffmpeg/core-mt.
  */
-const ASSET_BASE =
-  new URL("vendor/", document.baseURI).href;
 
-const FFMPEG_JS =
-  ASSET_BASE + "ffmpeg.js";
-
-const FFMPEG_WORKER =
-  ASSET_BASE + "814.ffmpeg.js";
-
-const CORE_JS =
-  ASSET_BASE + "ffmpeg-core.js";
-
-const CORE_WASM =
-  ASSET_BASE + "ffmpeg-core.wasm";
-
-let ffmpegLibraryLoaded = false;
+/*
+ * @ffmpeg/core 0.12.15 is NOT a published package.
+ * Official single-thread core: 0.12.10.
+ * These are local same-origin files on GitHub Pages.
+ * No FFmpeg CDN is used at runtime.
+ */
+const CORE_BASES = ["./vendor"];
 
 
 /* =====================================================
@@ -1243,9 +1234,6 @@ const downloadBtn =
 
 const openResultBtn =
   $("openResultBtn");
-
-const directLinkBtn =
-  $("directLinkBtn");
 
 const closeDownloadBtn =
   $("closeDownloadBtn");
@@ -1478,167 +1466,60 @@ function getFFmpegClass(){
  */
 
 async function downloadAsBlobURL(
-  url,
+  urls,
   mime
 ){
+  const list = Array.isArray(urls) ? urls : [urls];
+  let lastError = null;
 
-  const response =
-    await fetch(
-      url,
-      {
-        mode:"cors",
-        cache:"force-cache"
+  for(const url of list){
+    try{
+      console.log("AURA: loading FFmpeg resource:", url);
+
+      const response = await fetch(
+        url,
+        {
+          mode:"cors",
+          cache:"force-cache"
+        }
+      );
+
+      if(!response.ok){
+        throw new Error("HTTP " + response.status);
       }
-    );
 
+      const blob = await response.blob();
 
-  if(!response.ok){
-
-    throw new Error(
-      "Не удалось загрузить ресурс FFmpeg: " +
-      response.status
-    );
-
-  }
-
-
-  const blob =
-    await response.blob();
-
-
-  return URL.createObjectURL(
-    new Blob(
-      [blob],
-      {
-        type:mime
+      if(!blob.size){
+        throw new Error("Пустой ресурс");
       }
-    )
-  );
-}
 
+      console.log(
+        "AURA: FFmpeg resource loaded:",
+        url,
+        blob.size,
+        "bytes"
+      );
 
-/* =====================================================
-   LOAD FFMPEG UMD LIBRARY SAFELY
-===================================================== */
-
-async function loadFFmpegLibrary(){
-
-  if(
-    getFFmpegClass()
-  ){
-    ffmpegLibraryLoaded = true;
-    return;
-  }
-
-  if(ffmpegLibraryLoaded){
-    return;
-  }
-
-  console.log(
-    "AURA: loading patched FFmpeg wrapper:",
-    FFMPEG_JS
-  );
-
-  const response = await fetch(
-    FFMPEG_JS,
-    { cache: "no-cache" }
-  );
-
-  if(!response.ok){
-    throw new Error(
-      "Не удалось загрузить FFmpeg wrapper: HTTP " +
-      response.status
-    );
-  }
-
-  let source = await response.text();
-
-  /*
-   * @ffmpeg/ffmpeg UMD 0.12.x normally builds the
-   * 814 worker URL internally. In an iframe that can
-   * become file:///.../814.ffmpeg.js, which is exactly
-   * the SecurityError shown in the browser console.
-   *
-   * We replace that internal URL with the worker URL
-   * supplied through FFMessageLoadConfig.workerLoadURL.
-   */
-
-  const replacements = [
-    [
-      "new Worker(new URL(e.p+e.u(814),e.b),{type:void 0})",
-      "new Worker(r.workerLoadURL,{type:void 0})"
-    ],
-    [
-      "new Worker(new URL(e.p+e.u(814),e.b),{type:undefined})",
-      "new Worker(r.workerLoadURL,{type:undefined})"
-    ]
-  ];
-
-  let patched = false;
-
-  for(const [from,to] of replacements){
-    if(source.includes(from)){
-      source = source.replace(from,to);
-      patched = true;
-      break;
+      return URL.createObjectURL(
+        new Blob([blob], {type:mime})
+      );
+    }catch(error){
+      lastError = error;
+      console.warn(
+        "AURA: CDN failed:",
+        url,
+        error
+      );
     }
   }
 
-  if(!patched){
-    console.warn(
-      "AURA: known FFmpeg worker pattern was not found. " +
-      "Trying the wrapper unchanged."
-    );
-  }else{
-    console.log(
-      "AURA: FFmpeg worker path patched successfully."
-    );
-  }
-
-  const blobURL = URL.createObjectURL(
-    new Blob(
-      [source],
-      { type: "text/javascript" }
-    )
+  throw new Error(
+    "Не удалось загрузить ресурс FFmpeg ни с одного CDN. " +
+    (lastError && lastError.message
+      ? lastError.message
+      : "Неизвестная ошибка")
   );
-
-  try{
-
-    await new Promise((resolve,reject)=>{
-
-      const script =
-        document.createElement("script");
-
-      script.src = blobURL;
-
-      script.onload = () => {
-        script.remove();
-        resolve();
-      };
-
-      script.onerror = () => {
-        script.remove();
-        reject(
-          new Error(
-            "Не удалось инициализировать FFmpeg wrapper."
-          )
-        );
-      };
-
-      document.head.appendChild(script);
-    });
-
-  }finally{
-    URL.revokeObjectURL(blobURL);
-  }
-
-  if(!getFFmpegClass()){
-    throw new Error(
-      "FFmpeg wrapper загрузился, но класс FFmpegWASM.FFmpeg не найден."
-    );
-  }
-
-  ffmpegLibraryLoaded = true;
 }
 
 
@@ -1696,8 +1577,6 @@ async function loadFFmpeg(){
      * There is deliberately NO
      * SharedArrayBuffer code here.
      */
-
-    await loadFFmpegLibrary();
 
     const FFmpegClass =
       getFFmpegClass();
@@ -1788,55 +1667,28 @@ async function loadFFmpeg(){
       "Загрузка ядра FFmpeg…";
 
 
-    const workerLoadURL =
-      await downloadAsBlobURL(
-        FFMPEG_WORKER,
-        "text/javascript"
-      );
-
-
-    const coreURL =
-      await downloadAsBlobURL(
-        CORE_JS,
-        "text/javascript"
-      );
-
-
-    const wasmURL =
-      await downloadAsBlobURL(
-        CORE_WASM,
-        "application/wasm"
-      );
+    const coreURL = "./vendor/ffmpeg-core.js";
+    const wasmURL = "./vendor/ffmpeg-core.wasm";
 
 
     /*
-     * SINGLE THREAD FFmpeg.
-     * workerLoadURL is REQUIRED for the UMD build
-     * because 814.ffmpeg.js is the actual loader worker.
+     * Load SINGLE THREAD core.
+     *
+     * There is NO workerURL here because
+     * we are NOT using core-mt.
      */
 
     await ffmpeg.load({
-      workerLoadURL: workerLoadURL,
       coreURL: coreURL,
-      wasmURL: wasmURL
+      wasmURL: wasmURL,
+      classWorkerURL: "./vendor/814.ffmpeg.js"
     });
 
 
     /*
-     * Free temporary blob URLs.
+     * Core files are same-origin static files.
+     * Do not revoke them.
      */
-
-    revokeURL(
-      workerLoadURL
-    );
-
-    revokeURL(
-      coreURL
-    );
-
-    revokeURL(
-      wasmURL
-    );
 
 
     ffmpegLoaded =
@@ -1897,7 +1749,7 @@ async function loadFFmpeg(){
       "Ошибка:\n" +
       error.message +
       "\n\n" +
-      "Это уже другая ошибка, не SharedArrayBuffer."
+      "AURA использует single-thread FFmpeg и не требует SharedArrayBuffer."
     );
 
 
@@ -3839,11 +3691,14 @@ async function exportVideo(){
      * 10. Create Blob
      */
 
+    const outputBytes =
+      outputData instanceof Uint8Array
+        ? outputData
+        : new Uint8Array(outputData);
+
     resultBlob =
       new Blob(
-        [
-          outputData.buffer
-        ],
+        [outputBytes],
         {
           type:
             "video/mp4"
@@ -3974,423 +3829,213 @@ async function exportVideo(){
 
 
 /* =====================================================
-   WIX MEDIA MANAGER BRIDGE
-
-   In Wix the HTML Component is sandboxed, so direct
-   downloads from the iframe can be blocked by Chrome.
-
-   Reliable flow:
-     1. HTML asks Wix page for a Media Manager upload URL.
-     2. HTML uploads the finished MP4 directly to Wix using
-        that signed URL. The Blob never travels through
-        postMessage(), so there is no large-payload problem.
-     3. HTML sends only the returned Wix fileUrl to the page.
-     4. Wix backend creates a temporary download URL.
-     5. Wix page opens that download URL with wix-location.
-===================================================== */
-
-function isEmbeddedPage(){
-  try{
-    return window.self !== window.top;
-  }catch(error){
-    return true;
-  }
-}
-
-let wixMediaWaiters = {};
-let wixRequestCounter = 0;
-
-function wixRequest(type, payload = {}, timeoutMs = 20000){
-
-  return new Promise((resolve, reject) => {
-
-    if(!isEmbeddedPage()){
-      reject(new Error("AURA не находится внутри Wix iframe."));
-      return;
-    }
-
-    const id =
-      "aura_" +
-      Date.now() +
-      "_" +
-      (++wixRequestCounter);
-
-    const timer = setTimeout(() => {
-      delete wixMediaWaiters[id];
-      reject(new Error("Wix не ответил вовремя. Проверьте Page Code и ID HTML-компонента."));
-    }, timeoutMs);
-
-    wixMediaWaiters[id] = {
-      resolve: (data) => {
-        clearTimeout(timer);
-        delete wixMediaWaiters[id];
-        resolve(data);
-      },
-      reject: (error) => {
-        clearTimeout(timer);
-        delete wixMediaWaiters[id];
-        reject(error);
-      }
-    };
-
-    try{
-      window.parent.postMessage({
-        source: "AURA_WIX_MEDIA",
-        type,
-        requestId: id,
-        ...payload
-      }, "*");
-    }catch(error){
-      clearTimeout(timer);
-      delete wixMediaWaiters[id];
-      reject(error);
-    }
-  });
-}
-
-window.addEventListener("message", (event) => {
-
-  const data = event.data;
-
-  if(!data || data.source !== "AURA_WIX_MEDIA"){
-    return;
-  }
-
-  if(data.type === "RESPONSE" && data.requestId){
-
-    const waiter = wixMediaWaiters[data.requestId];
-
-    if(!waiter){
-      return;
-    }
-
-    if(data.ok === true){
-      waiter.resolve(data);
-    }else{
-      waiter.reject(
-        new Error(
-          data.error ||
-          "Wix Media Manager operation failed."
-        )
-      );
-    }
-  }
-});
-
-function extractWixFileUrl(value){
-
-  const seen = new Set();
-
-  function walk(v){
-
-    if(typeof v === "string"){
-      if(v.startsWith("wix:")) return v;
-      return null;
-    }
-
-    if(!v || typeof v !== "object"){
-      return null;
-    }
-
-    if(seen.has(v)) return null;
-    seen.add(v);
-
-    if(Array.isArray(v)){
-      for(const item of v){
-        const found = walk(item);
-        if(found) return found;
-      }
-      return null;
-    }
-
-    const preferred = [
-      "fileUrl",
-      "fileURL",
-      "wixFileUrl",
-      "mediaUrl",
-      "url"
-    ];
-
-    for(const key of preferred){
-      if(typeof v[key] === "string" && v[key].startsWith("wix:")){
-        return v[key];
-      }
-    }
-
-    for(const key of Object.keys(v)){
-      const found = walk(v[key]);
-      if(found) return found;
-    }
-
-    return null;
-  }
-
-  return walk(value);
-}
-
-async function requestWixUploadUrl(filename){
-
-  const response = await wixRequest(
-    "REQUEST_UPLOAD_URL",
-    {
-      filename,
-      mimeType: "video/mp4"
-    },
-    20000
-  );
-
-  if(!response.uploadUrl){
-    throw new Error("Wix не вернул upload URL для Media Manager.");
-  }
-
-  return response.uploadUrl;
-}
-
-async function uploadResultToWixMediaManager(){
-
-  if(!resultBlob || !resultBlob.size){
-    throw new Error("Нет готового MP4 для загрузки в Wix Media Manager.");
-  }
-
-  if(!isEmbeddedPage()){
-    throw new Error("Media Manager bridge используется только внутри Wix.");
-  }
-
-  const filename =
-    fileBaseName(
-      sourceFile && sourceFile.name
-    ) + "_edited.mp4";
-
-  setStatus(
-    "Получаем защищённую ссылку Wix…",
-    true
-  );
-
-  const uploadUrl =
-    await requestWixUploadUrl(filename);
-
-  setStatus(
-    "Загружаем готовое MP4 в Wix…",
-    true
-  );
-
-  /*
-   * Wix's getUploadUrl() endpoint accepts a multipart upload.
-   * Do not set Content-Type manually here: the browser adds the
-   * required multipart boundary automatically.
-   */
-  const formData = new FormData();
-
-  formData.append(
-    "upload_url",
-    uploadUrl
-  );
-
-  formData.append(
-    "file",
-    resultBlob,
-    filename
-  );
-
-  const response =
-    await fetch(uploadUrl, {
-      method: "POST",
-      body: formData
-    });
-
-  if(!response.ok){
-
-    let details = "";
-
-    try{
-      details = await response.text();
-    }catch(e){}
-
-    throw new Error(
-      "Wix Media Manager upload failed: HTTP " +
-      response.status +
-      (details ? " — " + details.slice(0,300) : "")
-    );
-  }
-
-  let uploadResult = null;
-
-  try{
-    uploadResult = await response.json();
-  }catch(error){
-    uploadResult = null;
-  }
-
-  console.log(
-    "AURA Wix Media upload response:",
-    uploadResult
-  );
-
-  const fileUrl =
-    extractWixFileUrl(uploadResult);
-
-  if(!fileUrl){
-    throw new Error(
-      "Wix принял MP4, но не вернул fileUrl. Откройте Console и проверьте ответ Media Manager."
-    );
-  }
-
-  setStatus(
-    "MP4 загружено в Wix. Готовим скачивание…",
-    true
-  );
-
-  await wixRequest(
-    "REQUEST_DOWNLOAD",
-    {
-      fileUrl,
-      filename
-    },
-    45000
-  );
-
-  setStatus(
-    "Скачивание MP4 запущено через Wix",
-    true
-  );
-
-  return true;
-}
-
-/* =====================================================
-   DOWNLOAD METHOD 1 — WIX MEDIA MANAGER
-===================================================== */
-
-async function downloadViaWixMediaManager(){
-
-  if(!isEmbeddedPage()){
-    throw new Error("AURA не встроена в Wix.");
-  }
-
-  return uploadResultToWixMediaManager();
-}
-
-/* =====================================================
-   DOWNLOAD METHOD 2 — SAVE PICKER
+   DOWNLOAD METHOD 1
+   File System Access API
 ===================================================== */
 
 async function downloadWithSavePicker(){
 
-  if(!resultBlob){
-    throw new Error("Нет готового файла.");
+  if(
+    !resultBlob
+  ){
+
+    throw new Error(
+      "Нет готового файла."
+    );
+
   }
 
-  if(typeof window.showSaveFilePicker !== "function"){
-    throw new Error("Save Picker недоступен.");
+
+  if(
+    typeof window.showSaveFilePicker !==
+      "function"
+  ){
+
+    throw new Error(
+      "Save Picker недоступен."
+    );
+
   }
+
 
   const filename =
     fileBaseName(
-      sourceFile && sourceFile.name
-    ) + "_edited.mp4";
+      sourceFile &&
+      sourceFile.name
+    ) +
+    "_edited.mp4";
+
 
   const handle =
     await window.showSaveFilePicker({
-      suggestedName: filename,
+
+      suggestedName:
+        filename,
+
       types:[
         {
-          description: "MP4 video",
-          accept:{"video/mp4":[".mp4"]}
+          description:
+            "MP4 video",
+
+          accept:{
+            "video/mp4":[
+              ".mp4"
+            ]
+          }
         }
       ]
+
     });
+
 
   const writable =
     await handle.createWritable();
 
-  await writable.write(resultBlob);
+
+  await writable.write(
+    resultBlob
+  );
+
+
   await writable.close();
+
 
   return true;
 }
 
+
 /* =====================================================
-   DOWNLOAD METHOD 3 — ANCHOR
+   DOWNLOAD METHOD 2
+   Anchor download
 ===================================================== */
 
 function downloadWithAnchor(){
 
-  if(!resultURL || !resultBlob){
-    throw new Error("Нет готового файла.");
+  if(
+    !resultURL ||
+    !resultBlob
+  ){
+
+    throw new Error(
+      "Нет готового файла."
+    );
+
   }
+
 
   const filename =
     fileBaseName(
-      sourceFile && sourceFile.name
-    ) + "_edited.mp4";
+      sourceFile &&
+      sourceFile.name
+    ) +
+    "_edited.mp4";
+
 
   const anchor =
-    document.createElement("a");
+    document.createElement(
+      "a"
+    );
 
-  anchor.href = resultURL;
-  anchor.download = filename;
-  anchor.rel = "noopener";
-  anchor.style.display = "none";
 
-  document.body.appendChild(anchor);
+  anchor.href =
+    resultURL;
+
+  anchor.download =
+    filename;
+
+  anchor.rel =
+    "noopener";
+
+
+  /*
+   * Do not set target="_blank" here.
+   * A new tab opens the Blob URL instead of
+   * starting a direct download.
+   */
+
+
+  /*
+   * Add to DOM before click.
+   */
+
+  anchor.style.display =
+    "none";
+
+
+  document.body.appendChild(
+    anchor
+  );
+
+
   anchor.click();
 
-  setTimeout(() => {
-    try{ anchor.remove(); }catch(e){}
-  }, 1000);
+
+  setTimeout(
+    () => {
+
+      try{
+        anchor.remove();
+      }catch(e){}
+
+    },
+    1000
+  );
+
 
   return true;
 }
 
+
 /* =====================================================
-   DIRECT LINK / OPEN RESULT
+   DOWNLOAD METHOD 3
+   OPEN RESULT
 ===================================================== */
 
-function openDirectMP4Link(){
+function openResult(){
 
-  if(!resultURL || !resultBlob){
-    alert("Сначала дождитесь завершения обработки.");
+  if(
+    !resultURL ||
+    !resultBlob
+  ){
+
+    alert(
+      "Готового видео пока нет."
+    );
+
     return;
   }
+
+
+  /*
+   * This is the most reliable fallback
+   * when Wix/browser blocks download.
+   */
 
   const newWindow =
     window.open(
       resultURL,
-      "_blank",
-      "noopener,noreferrer"
+      "_blank"
     );
 
+
   if(!newWindow){
+
     alert(
       "Браузер заблокировал новое окно.\n\n" +
       "Разрешите всплывающие окна для сайта Wix."
     );
+
     return;
   }
 
-  try{ newWindow.focus(); }catch(e){}
+
+  try{
+
+    newWindow.focus();
+
+  }catch(e){}
 }
 
-function openResult(){
-
-  if(!resultURL || !resultBlob){
-    alert("Готового видео пока нет.");
-    return;
-  }
-
-  const newWindow =
-    window.open(resultURL, "_blank");
-
-  if(!newWindow){
-    alert(
-      "Браузер заблокировал новое окно.\n\n" +
-      "Разрешите всплывающие окна для сайта Wix."
-    );
-    return;
-  }
-
-  try{ newWindow.focus(); }catch(e){}
-}
 
 /* =====================================================
    SMART DOWNLOAD
@@ -4398,45 +4043,84 @@ function openResult(){
 
 async function smartDownload(){
 
-  if(!resultBlob || !resultURL){
-    alert("Сначала дождитесь завершения обработки.");
+  if(
+    !resultBlob ||
+    !resultURL
+  ){
+
+    alert(
+      "Сначала дождитесь завершения обработки."
+    );
+
     return;
   }
 
+
   /*
-   * WIX METHOD — PRIMARY
+   * Wix embeds the editor in a cross-origin iframe.
+   * showSaveFilePicker is not available there and
+   * awaiting its rejection consumes the temporary
+   * user activation required for a download.
    *
-   * The MP4 is uploaded directly from the HTML component
-   * to Wix Media Manager. Only the small fileUrl is sent
-   * through postMessage(). Wix then creates a temporary
-   * download URL and starts the download from the parent
-   * page. This avoids the sandbox allow-downloads problem.
+   * Start the anchor download synchronously while
+   * the original button click is still active.
    */
 
-  if(isEmbeddedPage()){
+  let isEmbedded = false;
+
+
+  try{
+
+    isEmbedded =
+      window.self !== window.top;
+
+  }catch(error){
+
+    isEmbedded = true;
+
+  }
+
+
+  if(isEmbedded){
 
     try{
-      await downloadViaWixMediaManager();
+
+      downloadWithAnchor();
+
+
+      setStatus(
+        "Скачивание запущено",
+        true
+      );
+
+
       return;
+
     }catch(error){
 
-      console.error(
-        "AURA Wix Media Manager download failed:",
+      console.log(
+        "AURA iframe download failed:",
         error
       );
 
-      setStatus(
-        "Wix Media Manager не сработал — пробуем резервный способ…",
-        true
-      );
+
+      openResult();
+
+      return;
+
     }
+
   }
 
+
   /*
-   * DIRECT SITE METHOD
+   * METHOD 1
+   *
+   * Native Save Picker.
    */
 
   try{
+
     await downloadWithSavePicker();
 
     setStatus(
@@ -4447,39 +4131,72 @@ async function smartDownload(){
     return;
 
   }catch(error){
+
     console.log(
-      "AURA Save Picker unavailable:",
+      "AURA download method 1 unavailable:",
       error
     );
+
   }
 
+
   /*
-   * ANCHOR FALLBACK
+   * METHOD 2
+   *
+   * Normal browser download.
    */
 
   try{
+
     downloadWithAnchor();
+
 
     setStatus(
       "Скачивание запущено",
       true
     );
 
+
+    /*
+     * We cannot reliably know whether
+     * Chrome actually accepted a sandboxed
+     * iframe download.
+     *
+     * Therefore keep fallback visible.
+     */
+
+    setTimeout(
+      () => {
+
+        setStatus(
+          "Если загрузка не началась — нажмите «Открыть видео»",
+          true
+        );
+
+      },
+      1200
+    );
+
+
     return;
 
   }catch(error){
+
     console.log(
-      "AURA anchor download failed:",
+      "AURA download method 2 failed:",
       error
     );
+
   }
 
+
   /*
-   * LAST FALLBACK
+   * METHOD 3
    */
 
   openResult();
 }
+
 
 /* =====================================================
    DOWNLOAD BUTTONS
@@ -4489,14 +4206,6 @@ downloadBtn.onclick =
 async () => {
 
   await smartDownload();
-
-};
-
-
-directLinkBtn.onclick =
-() => {
-
-  openDirectMP4Link();
 
 };
 
@@ -4564,18 +4273,13 @@ console.log(
 );
 
 console.log(
-  "AURA embed mode:",
-  isEmbeddedPage() ? "Wix/iframe" : "standalone"
-);
-
-console.log(
   "FFmpeg version:",
   FFMPEG_VERSION
 );
 
 console.log(
-  "FFmpeg local assets:",
-  ASSET_BASE
+  "Single-thread core CDNs:",
+  CORE_BASES
 );
 
 console.log(
