@@ -9,14 +9,15 @@
 <style>
 :root{
   --bg:#10131a;
-  --panel:rgba(40,40,40,.16);
-  --border:rgba(255,255,255,.07);
+  --panel:rgba(40,40,40,.15);
+  --panel-solid:#282828;
+  --border:rgba(110,110,110,.15);
   --button:#282828;
-  --buttonText:#d8deea;
-  --primary:#053a99;
+  --buttonText:#6E6E6E;
+  --primary:#053A99;
   --accent:#21c7ff;
   --muted:#778398;
-  --white:#fff;
+  --white:#FFFFFF;
 }
 
 *{
@@ -71,6 +72,8 @@ button{
   background:var(--panel);
   border:1px solid var(--border);
   border-radius:15px;
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
   min-width:0;
 }
 
@@ -89,12 +92,13 @@ button{
 }
 
 .tool{
-  height:30px;
-  min-width:30px;
+  height:34px;
+  min-width:34px;
   padding:0 10px;
   border-radius:9px;
-  background:var(--button);
-  color:var(--buttonText);
+  background:rgba(40,40,40,.15);
+  color:#6E6E6E;
+  border:1px solid rgba(110,110,110,.15);
   display:flex;
   align-items:center;
   justify-content:center;
@@ -116,21 +120,38 @@ button{
 }
 
 .tool.active{
-  background:var(--primary);
-  color:#fff;
+  background:rgba(40,40,40,.28);
+  color:#FFFFFF;
+  border-color:rgba(110,110,110,.22);
 }
 
 .tool.icon{
-  width:30px;
+  width:36px;
   padding:0;
 }
 
+.tool.primary{
+  background:#053A99;
+  color:#FFFFFF;
+}
+
+.tool.primary:hover{
+  filter:brightness(1.12);
+}
+
 .tool svg{
-  width:16px;
-  height:16px;
+  width:18px;
+  height:18px;
   fill:none;
   stroke:currentColor;
-  stroke-width:1.9;
+  stroke-width:1.85;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  flex:none;
+}
+
+.tool.icon:hover svg{
+  transform:scale(1.04);
 }
 
 .sep{
@@ -173,7 +194,7 @@ button{
   align-items:center;
   justify-content:center;
   overflow:hidden;
-  background:#080b11;
+  background:var(--panel);
 }
 
 .preview-stage{
@@ -224,10 +245,11 @@ video{
 .crop-box{
   position:absolute;
   display:none;
-  border:1px solid var(--accent);
-  box-shadow:0 0 0 9999px rgba(0,0,0,.32);
+  border:1px solid #FFFFFF;
+  box-shadow:0 0 0 9999px rgba(0,0,0,.38);
   z-index:20;
   touch-action:none;
+  cursor:move;
 }
 
 .crop-box .lineV,
@@ -267,35 +289,37 @@ video{
 
 .handle{
   position:absolute;
-  width:11px;
-  height:11px;
-  background:#fff;
-  border-radius:3px;
-  box-shadow:0 0 0 1px rgba(0,0,0,.4);
+  width:18px;
+  height:18px;
+  background:#FFFFFF;
+  border:2px solid #282828;
+  border-radius:4px;
+  box-shadow:0 0 0 1px rgba(255,255,255,.65), 0 2px 8px rgba(0,0,0,.35);
   z-index:30;
+  touch-action:none;
 }
 
 .handle.tl{
-  left:-6px;
-  top:-6px;
+  left:-9px;
+  top:-9px;
   cursor:nwse-resize;
 }
 
 .handle.tr{
-  right:-6px;
-  top:-6px;
+  right:-9px;
+  top:-9px;
   cursor:nesw-resize;
 }
 
 .handle.bl{
-  left:-6px;
-  bottom:-6px;
+  left:-9px;
+  bottom:-9px;
   cursor:nesw-resize;
 }
 
 .handle.br{
-  right:-6px;
-  bottom:-6px;
+  right:-9px;
+  bottom:-9px;
   cursor:nwse-resize;
 }
 
@@ -371,8 +395,9 @@ video{
   justify-content:center;
   flex-direction:column;
   gap:10px;
-  background:rgba(5,8,13,.72);
-  backdrop-filter:blur(5px);
+  background:rgba(16,19,26,.72);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
   z-index:150;
 }
 
@@ -393,34 +418,48 @@ video{
 
 .download-main,
 .download-open{
-  min-width:190px;
+  width:min(300px,80vw);
+  min-width:210px;
+  min-height:44px;
   padding:11px 18px;
   border-radius:10px;
   cursor:pointer;
   font-weight:700;
+  font-size:12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  transition:.15s ease;
 }
 
 .download-main{
-  background:#fff;
-  color:#0a0d12;
+  background:#282828;
+  color:#6E6E6E;
+  border:1px solid rgba(110,110,110,.15);
 }
 
 .download-open{
-  background:var(--primary);
-  color:#fff;
+  background:#282828;
+  color:#6E6E6E;
+  border:1px solid rgba(110,110,110,.15);
 }
 
 .download-main:hover,
 .download-open:hover{
-  filter:brightness(1.12);
+  filter:brightness(1.18);
+  transform:translateY(-1px);
 }
 
-.download-close{
-  background:transparent;
-  color:#7f8ba0;
-  cursor:pointer;
-  padding:5px 10px;
-  font-size:10px;
+.download-main svg,
+.download-open svg{
+  width:17px;
+  height:17px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
 
 /* =====================================================
@@ -429,8 +468,8 @@ video{
 
 .crop-panel{
   display:none;
-  min-height:82px;
-  padding:10px 14px;
+  min-height:96px;
+  padding:11px 14px 12px;
 }
 
 .crop-panel.show{
@@ -439,8 +478,10 @@ video{
 
 .crop-header{
   display:flex;
+  align-items:center;
   justify-content:space-between;
-  margin-bottom:8px;
+  gap:14px;
+  margin-bottom:9px;
 }
 
 .crop-header strong{
@@ -450,36 +491,47 @@ video{
 .crop-header span{
   color:var(--muted);
   font-size:10px;
+  text-align:right;
 }
 
-.crop-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:7px 24px;
-}
-
-.range-row{
-  display:grid;
-  grid-template-columns:65px 1fr 43px;
-  gap:8px;
-  align-items:center;
-  color:#aeb8c9;
-}
-
-.range-row input{
-  width:100%;
-  accent-color:#1677ff;
-}
-
-.range-val{
-  height:25px;
-  border-radius:7px;
-  background:rgba(0,0,0,.22);
+.crop-presets{
   display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#bac5d7;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+.crop-preset{
+  height:31px;
+  padding:0 12px;
+  border-radius:8px;
+  background:rgba(40,40,40,.15);
+  border:1px solid rgba(110,110,110,.15);
+  color:#6E6E6E;
+  cursor:pointer;
   font-size:10px;
+  font-weight:700;
+  transition:.15s ease;
+}
+
+.crop-preset:hover{
+  filter:brightness(1.18);
+  color:#FFFFFF;
+}
+
+.crop-preset.active{
+  background:#282828;
+  color:#FFFFFF;
+  border-color:rgba(110,110,110,.28);
+}
+
+.crop-preset[data-ratio="original"]{
+  margin-right:4px;
+}
+
+.crop-hint{
+  margin-top:8px;
+  color:#6f7c91;
+  font-size:9px;
 }
 
 /* =====================================================
@@ -493,14 +545,14 @@ video{
   display:flex;
   flex-direction:column;
   gap:5px;
-  background:#070a10;
+  background:var(--panel);
 }
 
 .film{
   flex:1;
   min-height:0;
   position:relative;
-  overflow:hidden;
+  overflow:visible;
   border-radius:6px;
   background:#020305;
 }
@@ -510,6 +562,7 @@ video{
   height:100%;
   display:flex;
   overflow:hidden;
+  border-radius:6px;
 }
 
 .thumb{
@@ -532,25 +585,27 @@ video{
 
 .trim-handle{
   position:absolute;
-  top:-2px;
-  bottom:-2px;
-  width:12px;
-  border-radius:5px;
+  top:-3px;
+  bottom:-3px;
+  width:18px;
+  border-radius:6px;
   background:var(--accent);
-  box-shadow:0 0 8px rgba(33,199,255,.35);
+  box-shadow:0 0 10px rgba(33,199,255,.35);
   cursor:ew-resize;
   z-index:20;
+  transform:translateX(-50%);
+  touch-action:none;
 }
 
 .trim-handle:after{
   content:"";
   position:absolute;
-  left:4px;
-  top:22%;
-  bottom:22%;
-  width:3px;
+  left:7px;
+  top:20%;
+  bottom:20%;
+  width:4px;
   border-radius:2px;
-  background:rgba(255,255,255,.75);
+  background:#FFFFFF;
 }
 
 .time-scale{
@@ -633,8 +688,9 @@ video{
   min-width:125px;
   height:100%;
   border-radius:11px;
-  background:#fff;
-  color:#0a0d13;
+  background:#282828;
+  color:#6E6E6E;
+  border:1px solid rgba(110,110,110,.15);
   font-weight:700;
   cursor:pointer;
 }
@@ -673,12 +729,12 @@ video{
     height:calc(100% - 10px);
   }
 
-  .crop-grid{
+  .crop-presets{
     gap:6px;
   }
 
-  .range-row{
-    grid-template-columns:43px 1fr 40px;
+  .crop-preset{
+    padding:0 9px;
   }
 
   .file-info{
@@ -702,62 +758,69 @@ video{
 
   <div class="panel toolbar">
 
-    <button class="tool active" id="openBtn">
+    <button class="tool active" id="openBtn" title="Загрузить видео">
 
-      <svg viewBox="0 0 24 24">
-        <path d="M4 17.5V6.8A2.8 2.8 0 0 1 6.8 4h5.6"/>
-        <path d="M8 16l8-8 4 4-8 8H8z"/>
-        <path d="M14 4h6v6"/>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 15V3"/>
+        <path d="m7 8 5-5 5 5"/>
+        <path d="M5 14v5h14v-5"/>
       </svg>
 
-      <span>Обрезка</span>
+      <span>Загрузить</span>
 
     </button>
 
     <button class="tool icon" id="cropBtn" title="Кадрирование">
 
-      <svg viewBox="0 0 24 24">
-        <path d="M7 3v14a2 2 0 0 0 2 2h14"/>
-        <path d="M17 21V7a2 2 0 0 0-2-2H1"/>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M8 3H3v5"/>
+        <path d="M16 3h5v5"/>
+        <path d="M21 16v5h-5"/>
+        <path d="M3 16v5h5"/>
+        <path d="M7 7h10v10H7z"/>
       </svg>
 
     </button>
 
-    <button class="tool icon" id="rotateBtn" title="Повернуть">
+    <button class="tool icon" id="rotateBtn" title="Повернуть на 90°">
 
-      <svg viewBox="0 0 24 24">
-        <path d="M4 12a8 8 0 1 0 2.3-5.7"/>
-        <path d="M4 4v6h6"/>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M20 11a8 8 0 0 0-14.9-4"/>
+        <path d="M5 3v5h5"/>
+        <path d="M4 13a8 8 0 0 0 14.9 4"/>
+        <path d="M19 21v-5h-5"/>
       </svg>
 
     </button>
 
-    <button class="tool icon" id="mirrorBtn" title="Отразить">
+    <button class="tool icon" id="mirrorBtn" title="Отразить по горизонтали">
 
-      <svg viewBox="0 0 24 24">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M12 3v18"/>
-        <path d="M4 6l6 6-6 6z"/>
-        <path d="M20 6l-6 6 6 6z"/>
+        <path d="m4 7 6 5-6 5z"/>
+        <path d="m20 7-6 5 6 5z"/>
       </svg>
 
     </button>
 
-    <button class="tool icon" id="muteBtn" title="Без звука">
+    <button class="tool icon" id="muteBtn" title="Выключить звук">
 
-      <svg viewBox="0 0 24 24">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
         <path d="M4 10v4h4l5 4V6l-5 4H4z"/>
-        <path d="M17 9l4 6M21 9l-4 6"/>
+        <path d="m18 9 4 6"/>
+        <path d="m22 9-4 6"/>
       </svg>
 
     </button>
 
     <div class="sep"></div>
 
-    <button class="tool icon" id="resetBtn" title="Сбросить">
+    <button class="tool icon" id="resetBtn" title="Сбросить все изменения">
 
-      <svg viewBox="0 0 24 24">
-        <path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/>
-        <path d="M4 4v4.5h4.5"/>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3 12a9 9 0 1 0 3-6.7"/>
+        <path d="M3 4v6h6"/>
+        <path d="M12 7v5l3 2"/>
       </svg>
 
     </button>
@@ -765,9 +828,9 @@ video{
     <div class="toolbar-spacer"></div>
 
     <button
-      class="tool"
+      class="tool primary"
       id="chooseBtn"
-      style="background:#053a99;color:#fff;"
+      title="Загрузить видео"
     >
 
       <svg viewBox="0 0 24 24">
@@ -867,29 +930,26 @@ video{
             class="download-main"
             id="downloadBtn"
           >
-            Скачать MP4
-          </button>
-
-          <button
-            class="download-open"
-            id="directLinkBtn"
-          >
-            Прямая ссылка на MP4
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v12"/>
+              <path d="m7 10 5 5 5-5"/>
+              <path d="M5 21h14"/>
+            </svg>
+            <span>Скачать MP4</span>
           </button>
 
           <button
             class="download-open"
             id="openResultBtn"
           >
-            Открыть видео
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M14 4h6v6"/>
+              <path d="m20 4-9 9"/>
+              <path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5"/>
+            </svg>
+            <span>Открыть видео</span>
           </button>
 
-          <button
-            class="download-close"
-            id="closeDownloadBtn"
-          >
-            Закрыть
-          </button>
 
         </div>
 
@@ -906,89 +966,26 @@ video{
     >
 
       <div class="crop-header">
-
         <strong>Кадрирование</strong>
+        <span>Перетаскивайте сетку целиком или тяните за углы</span>
+      </div>
 
-        <span>
-          Можно менять размер прямо мышью
-        </span>
+      <div class="crop-presets" id="cropPresets">
+
+        <button class="crop-preset active" data-ratio="original" type="button">Оригинал</button>
+        <button class="crop-preset" data-ratio="1:1" type="button">1:1</button>
+        <button class="crop-preset" data-ratio="4:5" type="button">4:5</button>
+        <button class="crop-preset" data-ratio="3:4" type="button">3:4</button>
+        <button class="crop-preset" data-ratio="4:3" type="button">4:3</button>
+        <button class="crop-preset" data-ratio="3:2" type="button">3:2</button>
+        <button class="crop-preset" data-ratio="16:9" type="button">16:9</button>
+        <button class="crop-preset" data-ratio="9:16" type="button">9:16</button>
+        <button class="crop-preset" data-ratio="21:9" type="button">21:9</button>
 
       </div>
 
-      <div class="crop-grid">
-
-        <div class="range-row">
-
-          <span>X</span>
-
-          <input
-            id="xRange"
-            type="range"
-            min="0"
-            max="95"
-            value="0"
-          >
-
-          <div class="range-val" id="xVal">
-            0%
-          </div>
-
-        </div>
-
-        <div class="range-row">
-
-          <span>Y</span>
-
-          <input
-            id="yRange"
-            type="range"
-            min="0"
-            max="95"
-            value="0"
-          >
-
-          <div class="range-val" id="yVal">
-            0%
-          </div>
-
-        </div>
-
-        <div class="range-row">
-
-          <span>Ширина</span>
-
-          <input
-            id="wRange"
-            type="range"
-            min="5"
-            max="100"
-            value="100"
-          >
-
-          <div class="range-val" id="wVal">
-            100%
-          </div>
-
-        </div>
-
-        <div class="range-row">
-
-          <span>Высота</span>
-
-          <input
-            id="hRange"
-            type="range"
-            min="5"
-            max="100"
-            value="100"
-          >
-
-          <div class="range-val" id="hVal">
-            100%
-          </div>
-
-        </div>
-
+      <div class="crop-hint">
+        Пресеты автоматически центрируют область. После выбора её можно свободно переместить или изменить за углы.
       </div>
 
     </div>
@@ -1101,19 +1098,24 @@ video{
 
 
 <!-- =====================================================
-     FFMPEG.WASM 0.12.15
+     FFMPEG.WASM 0.12.10
      
      ВАЖНО:
      НЕ используем core-mt.
      НЕ используем SharedArrayBuffer.
 ====================================================== -->
 
+<script
+  src="./vendor/ffmpeg.js"
+></script>
+
+
 <script>
 "use strict";
 
 /* =====================================================
    AURA VIDEO EDITOR
-   GitHub Pages-safe FFmpeg WASM 0.12.15
+   Same-origin FFmpeg WASM 0.12.10 for Wix iframe
 ===================================================== */
 
 
@@ -1126,25 +1128,18 @@ const MAX_FILE_MB = 200;
 const FFMPEG_VERSION = "0.12.10";
 
 /*
- * ALL FFMPEG ASSETS ARE SERVED FROM THE SAME GITHUB PAGES SITE.
- * This avoids CDN/CORS/Worker-origin problems.
+ * SINGLE THREAD CORE.
+ *
+ * НЕ меняй на @ffmpeg/core-mt.
  */
-const ASSET_BASE =
-  new URL("vendor/", document.baseURI).href;
 
-const FFMPEG_JS =
-  ASSET_BASE + "ffmpeg.js";
-
-const FFMPEG_WORKER =
-  ASSET_BASE + "814.ffmpeg.js";
-
-const CORE_JS =
-  ASSET_BASE + "ffmpeg-core.js";
-
-const CORE_WASM =
-  ASSET_BASE + "ffmpeg-core.wasm";
-
-let ffmpegLibraryLoaded = false;
+/*
+ * @ffmpeg/core 0.12.15 is NOT a published package.
+ * Official single-thread core: 0.12.10.
+ * These are local same-origin files on GitHub Pages.
+ * No FFmpeg CDN is used at runtime.
+ */
+const CORE_BASES = ["./vendor"];
 
 
 /* =====================================================
@@ -1202,6 +1197,9 @@ const cropPanel =
 const cropBox =
   $("cropBox");
 
+const cropPresets =
+  $("cropPresets");
+
 const thumbs =
   $("thumbs");
 
@@ -1243,12 +1241,6 @@ const downloadBtn =
 
 const openResultBtn =
   $("openResultBtn");
-
-const directLinkBtn =
-  $("directLinkBtn");
-
-const closeDownloadBtn =
-  $("closeDownloadBtn");
 
 
 /* =====================================================
@@ -1478,167 +1470,60 @@ function getFFmpegClass(){
  */
 
 async function downloadAsBlobURL(
-  url,
+  urls,
   mime
 ){
+  const list = Array.isArray(urls) ? urls : [urls];
+  let lastError = null;
 
-  const response =
-    await fetch(
-      url,
-      {
-        mode:"cors",
-        cache:"force-cache"
+  for(const url of list){
+    try{
+      console.log("AURA: loading FFmpeg resource:", url);
+
+      const response = await fetch(
+        url,
+        {
+          mode:"cors",
+          cache:"force-cache"
+        }
+      );
+
+      if(!response.ok){
+        throw new Error("HTTP " + response.status);
       }
-    );
 
+      const blob = await response.blob();
 
-  if(!response.ok){
-
-    throw new Error(
-      "Не удалось загрузить ресурс FFmpeg: " +
-      response.status
-    );
-
-  }
-
-
-  const blob =
-    await response.blob();
-
-
-  return URL.createObjectURL(
-    new Blob(
-      [blob],
-      {
-        type:mime
+      if(!blob.size){
+        throw new Error("Пустой ресурс");
       }
-    )
-  );
-}
 
+      console.log(
+        "AURA: FFmpeg resource loaded:",
+        url,
+        blob.size,
+        "bytes"
+      );
 
-/* =====================================================
-   LOAD FFMPEG UMD LIBRARY SAFELY
-===================================================== */
-
-async function loadFFmpegLibrary(){
-
-  if(
-    getFFmpegClass()
-  ){
-    ffmpegLibraryLoaded = true;
-    return;
-  }
-
-  if(ffmpegLibraryLoaded){
-    return;
-  }
-
-  console.log(
-    "AURA: loading patched FFmpeg wrapper:",
-    FFMPEG_JS
-  );
-
-  const response = await fetch(
-    FFMPEG_JS,
-    { cache: "no-cache" }
-  );
-
-  if(!response.ok){
-    throw new Error(
-      "Не удалось загрузить FFmpeg wrapper: HTTP " +
-      response.status
-    );
-  }
-
-  let source = await response.text();
-
-  /*
-   * @ffmpeg/ffmpeg UMD 0.12.x normally builds the
-   * 814 worker URL internally. In an iframe that can
-   * become file:///.../814.ffmpeg.js, which is exactly
-   * the SecurityError shown in the browser console.
-   *
-   * We replace that internal URL with the worker URL
-   * supplied through FFMessageLoadConfig.workerLoadURL.
-   */
-
-  const replacements = [
-    [
-      "new Worker(new URL(e.p+e.u(814),e.b),{type:void 0})",
-      "new Worker(r.workerLoadURL,{type:void 0})"
-    ],
-    [
-      "new Worker(new URL(e.p+e.u(814),e.b),{type:undefined})",
-      "new Worker(r.workerLoadURL,{type:undefined})"
-    ]
-  ];
-
-  let patched = false;
-
-  for(const [from,to] of replacements){
-    if(source.includes(from)){
-      source = source.replace(from,to);
-      patched = true;
-      break;
+      return URL.createObjectURL(
+        new Blob([blob], {type:mime})
+      );
+    }catch(error){
+      lastError = error;
+      console.warn(
+        "AURA: CDN failed:",
+        url,
+        error
+      );
     }
   }
 
-  if(!patched){
-    console.warn(
-      "AURA: known FFmpeg worker pattern was not found. " +
-      "Trying the wrapper unchanged."
-    );
-  }else{
-    console.log(
-      "AURA: FFmpeg worker path patched successfully."
-    );
-  }
-
-  const blobURL = URL.createObjectURL(
-    new Blob(
-      [source],
-      { type: "text/javascript" }
-    )
+  throw new Error(
+    "Не удалось загрузить ресурс FFmpeg ни с одного CDN. " +
+    (lastError && lastError.message
+      ? lastError.message
+      : "Неизвестная ошибка")
   );
-
-  try{
-
-    await new Promise((resolve,reject)=>{
-
-      const script =
-        document.createElement("script");
-
-      script.src = blobURL;
-
-      script.onload = () => {
-        script.remove();
-        resolve();
-      };
-
-      script.onerror = () => {
-        script.remove();
-        reject(
-          new Error(
-            "Не удалось инициализировать FFmpeg wrapper."
-          )
-        );
-      };
-
-      document.head.appendChild(script);
-    });
-
-  }finally{
-    URL.revokeObjectURL(blobURL);
-  }
-
-  if(!getFFmpegClass()){
-    throw new Error(
-      "FFmpeg wrapper загрузился, но класс FFmpegWASM.FFmpeg не найден."
-    );
-  }
-
-  ffmpegLibraryLoaded = true;
 }
 
 
@@ -1696,8 +1581,6 @@ async function loadFFmpeg(){
      * There is deliberately NO
      * SharedArrayBuffer code here.
      */
-
-    await loadFFmpegLibrary();
 
     const FFmpegClass =
       getFFmpegClass();
@@ -1788,55 +1671,28 @@ async function loadFFmpeg(){
       "Загрузка ядра FFmpeg…";
 
 
-    const workerLoadURL =
-      await downloadAsBlobURL(
-        FFMPEG_WORKER,
-        "text/javascript"
-      );
-
-
-    const coreURL =
-      await downloadAsBlobURL(
-        CORE_JS,
-        "text/javascript"
-      );
-
-
-    const wasmURL =
-      await downloadAsBlobURL(
-        CORE_WASM,
-        "application/wasm"
-      );
+    const coreURL = "./vendor/ffmpeg-core.js";
+    const wasmURL = "./vendor/ffmpeg-core.wasm";
 
 
     /*
-     * SINGLE THREAD FFmpeg.
-     * workerLoadURL is REQUIRED for the UMD build
-     * because 814.ffmpeg.js is the actual loader worker.
+     * Load SINGLE THREAD core.
+     *
+     * There is NO workerURL here because
+     * we are NOT using core-mt.
      */
 
     await ffmpeg.load({
-      workerLoadURL: workerLoadURL,
       coreURL: coreURL,
-      wasmURL: wasmURL
+      wasmURL: wasmURL,
+      classWorkerURL: "./vendor/814.ffmpeg.js"
     });
 
 
     /*
-     * Free temporary blob URLs.
+     * Core files are same-origin static files.
+     * Do not revoke them.
      */
-
-    revokeURL(
-      workerLoadURL
-    );
-
-    revokeURL(
-      coreURL
-    );
-
-    revokeURL(
-      wasmURL
-    );
 
 
     ffmpegLoaded =
@@ -1897,7 +1753,7 @@ async function loadFFmpeg(){
       "Ошибка:\n" +
       error.message +
       "\n\n" +
-      "Это уже другая ошибка, не SharedArrayBuffer."
+      "AURA использует single-thread FFmpeg и не требует SharedArrayBuffer."
     );
 
 
@@ -2277,15 +2133,11 @@ function updateTrimUI(){
 
 
   leftHandle.style.left =
-    "calc(" +
-    left * 100 +
-    "% - 6px)";
+    left * 100 + "%";
 
 
   rightHandle.style.left =
-    "calc(" +
-    right * 100 +
-    "% - 6px)";
+    right * 100 + "%";
 
 
   startInput.value =
@@ -2529,15 +2381,24 @@ function pointerMove(event){
 
 
   if(
+    pointerDrag.type ===
+    "cropMove"
+  ){
+
+    moveCropFromPointer(event);
+    return;
+
+  }
+
+
+  if(
     pointerDrag.type !==
     "crop"
   )
     return;
 
 
-  updateCropFromPointer(
-    event
-  );
+  updateCropFromPointer(event);
 }
 
 
@@ -2560,116 +2421,9 @@ function pointerUp(){
 
 function updateCropUI(){
 
-  $("xRange").value =
-    crop.x;
-
-  $("yRange").value =
-    crop.y;
-
-  $("wRange").value =
-    crop.w;
-
-  $("hRange").value =
-    crop.h;
-
-
-  $("xVal").textContent =
-    Math.round(crop.x) +
-    "%";
-
-  $("yVal").textContent =
-    Math.round(crop.y) +
-    "%";
-
-  $("wVal").textContent =
-    Math.round(crop.w) +
-    "%";
-
-  $("hVal").textContent =
-    Math.round(crop.h) +
-    "%";
-
-
   positionCropBox();
+
 }
-
-
-function setCropValue(
-  property,
-  value
-){
-
-  crop[property] =
-    Number(value);
-
-
-  if(property === "x"){
-
-    crop.x =
-      Math.min(
-        crop.x,
-        100 - crop.w
-      );
-
-  }
-
-
-  if(property === "y"){
-
-    crop.y =
-      Math.min(
-        crop.y,
-        100 - crop.h
-      );
-
-  }
-
-
-  if(property === "w"){
-
-    crop.w =
-      Math.min(
-        crop.w,
-        100 - crop.x
-      );
-
-  }
-
-
-  if(property === "h"){
-
-    crop.h =
-      Math.min(
-        crop.h,
-        100 - crop.y
-      );
-
-  }
-
-
-  updateCropUI();
-}
-
-
-["x","y","w","h"]
-.forEach(
-  property => {
-
-    $(property + "Range")
-      .addEventListener(
-        "input",
-        event => {
-
-          setCropValue(
-            property,
-            event.target.value
-          );
-
-        }
-      );
-
-  }
-);
 
 
 cropBtn.onclick =
@@ -2701,8 +2455,34 @@ cropBtn.onclick =
       : "none";
 
 
-  if(cropMode)
+  if(cropMode){
+
     positionCropBox();
+
+    /*
+     * If crop is full-frame, highlight Original.
+     * Otherwise don't falsely claim a preset is active.
+     */
+    if(
+      crop.x === 0 &&
+      crop.y === 0 &&
+      crop.w === 100 &&
+      crop.h === 100 &&
+      cropPresets
+    ){
+
+      cropPresets
+        .querySelectorAll(".crop-preset")
+        .forEach(item =>
+          item.classList.toggle(
+            "active",
+            item.dataset.ratio === "original"
+          )
+        );
+
+    }
+
+  }
 };
 
 
@@ -2786,123 +2566,96 @@ window.addEventListener(
 
 
 /* =====================================================
-   CROP HANDLES
+   CROP HANDLES + MOVE
 ===================================================== */
 
 document
-  .querySelectorAll(
-    ".handle"
-  )
-  .forEach(
-    handle => {
+  .querySelectorAll(".handle")
+  .forEach(handle => {
 
-      handle.addEventListener(
-        "pointerdown",
-        event => {
+    handle.addEventListener("pointerdown", event => {
 
-          if(isExporting)
-            return;
+      if(isExporting)
+        return;
 
+      event.preventDefault();
+      event.stopPropagation();
 
-          event.preventDefault();
+      try{
+        handle.setPointerCapture(event.pointerId);
+      }catch(e){}
 
-          event.stopPropagation();
+      pointerDrag = {
+        type:"crop",
+        handle:handle.dataset.h
+      };
 
+      document.addEventListener("pointermove", pointerMove);
+      document.addEventListener("pointerup", pointerUp, {once:true});
 
-          pointerDrag = {
-            type:"crop",
-            handle:
-              handle.dataset.h
-          };
+    });
 
-
-          document.addEventListener(
-            "pointermove",
-            pointerMove
-          );
+  });
 
 
-          document.addEventListener(
-            "pointerup",
-            pointerUp,
-            {
-              once:true
-            }
-          );
+cropBox.addEventListener(
+  "pointerdown",
+  event => {
 
-        }
-      );
+    if(isExporting || !cropMode)
+      return;
 
-    }
-  );
+    if(
+      event.target.classList.contains("handle")
+    )
+      return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    pointerDrag = {
+      type:"cropMove",
+      startClientX:event.clientX,
+      startClientY:event.clientY,
+      startCropX:crop.x,
+      startCropY:crop.y
+    };
+
+    document.addEventListener("pointermove", pointerMove);
+    document.addEventListener("pointerup", pointerUp, {once:true});
+
+  }
+);
 
 
-function updateCropFromPointer(
-  event
-){
+function updateCropFromPointer(event){
 
   const rect =
     video.getBoundingClientRect();
 
-
-  if(
-    !rect.width ||
-    !rect.height
-  )
+  if(!rect.width || !rect.height)
     return;
 
-
   let x =
-    (
-      event.clientX -
-      rect.left
-    ) /
-    rect.width *
-    100;
-
+    (event.clientX - rect.left) /
+    rect.width * 100;
 
   let y =
-    (
-      event.clientY -
-      rect.top
-    ) /
-    rect.height *
-    100;
+    (event.clientY - rect.top) /
+    rect.height * 100;
 
-
-  x =
-    Math.max(
-      0,
-      Math.min(
-        100,
-        x
-      )
-    );
-
-
-  y =
-    Math.max(
-      0,
-      Math.min(
-        100,
-        y
-      )
-    );
-
+  x = Math.max(0, Math.min(100, x));
+  y = Math.max(0, Math.min(100, y));
 
   const handle =
     pointerDrag.handle;
 
-  const minimum =
-    5;
-
+  const minimum = 5;
 
   if(handle.includes("l")){
 
     const right =
-      crop.x +
-      crop.w;
-
+      crop.x + crop.w;
 
     crop.x =
       Math.min(
@@ -2910,12 +2663,9 @@ function updateCropFromPointer(
         right - minimum
       );
 
-
     crop.w =
-      right -
-      crop.x;
+      right - crop.x;
   }
-
 
   if(handle.includes("r")){
 
@@ -2929,13 +2679,10 @@ function updateCropFromPointer(
       );
   }
 
-
   if(handle.includes("t")){
 
     const bottom =
-      crop.y +
-      crop.h;
-
+      crop.y + crop.h;
 
     crop.y =
       Math.min(
@@ -2943,12 +2690,9 @@ function updateCropFromPointer(
         bottom - minimum
       );
 
-
     crop.h =
-      bottom -
-      crop.y;
+      bottom - crop.y;
   }
-
 
   if(handle.includes("b")){
 
@@ -2962,14 +2706,164 @@ function updateCropFromPointer(
       );
   }
 
+  markCropPresetCustom();
+  updateCropUI();
+}
+
+
+function moveCropFromPointer(event){
+
+  const rect =
+    video.getBoundingClientRect();
+
+  if(!rect.width || !rect.height)
+    return;
+
+  const dx =
+    (event.clientX - pointerDrag.startClientX) /
+    rect.width * 100;
+
+  const dy =
+    (event.clientY - pointerDrag.startClientY) /
+    rect.height * 100;
+
+  crop.x =
+    Math.max(
+      0,
+      Math.min(
+        100 - crop.w,
+        pointerDrag.startCropX + dx
+      )
+    );
+
+  crop.y =
+    Math.max(
+      0,
+      Math.min(
+        100 - crop.h,
+        pointerDrag.startCropY + dy
+      )
+    );
 
   updateCropUI();
+}
+
+
+function markCropPresetCustom(){
+
+  if(!cropPresets)
+    return;
+
+  cropPresets
+    .querySelectorAll(".crop-preset")
+    .forEach(btn =>
+      btn.classList.remove("active")
+    );
+
+}
+
+
+function applyCropAspect(ratioText){
+
+  if(!video.videoWidth || !video.videoHeight)
+    return;
+
+  if(ratioText === "original"){
+
+    crop.x = 0;
+    crop.y = 0;
+    crop.w = 100;
+    crop.h = 100;
+
+    updateCropUI();
+    return;
+  }
+
+  const parts =
+    ratioText.split(":").map(Number);
+
+  const targetRatio =
+    parts[0] / parts[1];
+
+  const videoRatio =
+    video.videoWidth /
+    video.videoHeight;
+
+  /*
+   * Crop percentages live in source-video coordinates.
+   * Convert the desired display ratio into percentage
+   * width/height while preserving the requested aspect.
+   */
+  let w = 100;
+  let h =
+    100 *
+    videoRatio /
+    targetRatio;
+
+  if(h > 100){
+
+    h = 100;
+    w =
+      100 *
+      targetRatio /
+      videoRatio;
+
+  }
+
+  /*
+   * Never create an almost-zero crop.
+   */
+  w = Math.max(5, Math.min(100, w));
+  h = Math.max(5, Math.min(100, h));
+
+  crop.w = w;
+  crop.h = h;
+
+  crop.x = (100 - w) / 2;
+  crop.y = (100 - h) / 2;
+
+  updateCropUI();
+}
+
+
+if(cropPresets){
+
+  cropPresets
+    .querySelectorAll(".crop-preset")
+    .forEach(btn => {
+
+      btn.addEventListener(
+        "click",
+        () => {
+
+          if(isExporting || !sourceFile)
+            return;
+
+          cropPresets
+            .querySelectorAll(".crop-preset")
+            .forEach(item =>
+              item.classList.remove("active")
+            );
+
+          btn.classList.add("active");
+
+          applyCropAspect(
+            btn.dataset.ratio
+          );
+
+        }
+      );
+
+    });
+
 }
 
 
 /* =====================================================
    ROTATE / MIRROR / MUTE
 ===================================================== */
+
+
 
 rotateBtn.onclick =
 () => {
@@ -3128,6 +3022,19 @@ resetBtn.onclick =
 
   crop.h =
     100;
+
+  if(cropPresets){
+
+    cropPresets
+      .querySelectorAll(".crop-preset")
+      .forEach(item =>
+        item.classList.toggle(
+          "active",
+          item.dataset.ratio === "original"
+        )
+      );
+
+  }
 
 
   cropMode =
@@ -3839,11 +3746,14 @@ async function exportVideo(){
      * 10. Create Blob
      */
 
+    const outputBytes =
+      outputData instanceof Uint8Array
+        ? outputData
+        : new Uint8Array(outputData);
+
     resultBlob =
       new Blob(
-        [
-          outputData.buffer
-        ],
+        [outputBytes],
         {
           type:
             "video/mp4"
@@ -3974,423 +3884,213 @@ async function exportVideo(){
 
 
 /* =====================================================
-   WIX MEDIA MANAGER BRIDGE
-
-   In Wix the HTML Component is sandboxed, so direct
-   downloads from the iframe can be blocked by Chrome.
-
-   Reliable flow:
-     1. HTML asks Wix page for a Media Manager upload URL.
-     2. HTML uploads the finished MP4 directly to Wix using
-        that signed URL. The Blob never travels through
-        postMessage(), so there is no large-payload problem.
-     3. HTML sends only the returned Wix fileUrl to the page.
-     4. Wix backend creates a temporary download URL.
-     5. Wix page opens that download URL with wix-location.
-===================================================== */
-
-function isEmbeddedPage(){
-  try{
-    return window.self !== window.top;
-  }catch(error){
-    return true;
-  }
-}
-
-let wixMediaWaiters = {};
-let wixRequestCounter = 0;
-
-function wixRequest(type, payload = {}, timeoutMs = 20000){
-
-  return new Promise((resolve, reject) => {
-
-    if(!isEmbeddedPage()){
-      reject(new Error("AURA не находится внутри Wix iframe."));
-      return;
-    }
-
-    const id =
-      "aura_" +
-      Date.now() +
-      "_" +
-      (++wixRequestCounter);
-
-    const timer = setTimeout(() => {
-      delete wixMediaWaiters[id];
-      reject(new Error("Wix не ответил вовремя. Проверьте Page Code и ID HTML-компонента."));
-    }, timeoutMs);
-
-    wixMediaWaiters[id] = {
-      resolve: (data) => {
-        clearTimeout(timer);
-        delete wixMediaWaiters[id];
-        resolve(data);
-      },
-      reject: (error) => {
-        clearTimeout(timer);
-        delete wixMediaWaiters[id];
-        reject(error);
-      }
-    };
-
-    try{
-      window.parent.postMessage({
-        source: "AURA_WIX_MEDIA",
-        type,
-        requestId: id,
-        ...payload
-      }, "*");
-    }catch(error){
-      clearTimeout(timer);
-      delete wixMediaWaiters[id];
-      reject(error);
-    }
-  });
-}
-
-window.addEventListener("message", (event) => {
-
-  const data = event.data;
-
-  if(!data || data.source !== "AURA_WIX_MEDIA"){
-    return;
-  }
-
-  if(data.type === "RESPONSE" && data.requestId){
-
-    const waiter = wixMediaWaiters[data.requestId];
-
-    if(!waiter){
-      return;
-    }
-
-    if(data.ok === true){
-      waiter.resolve(data);
-    }else{
-      waiter.reject(
-        new Error(
-          data.error ||
-          "Wix Media Manager operation failed."
-        )
-      );
-    }
-  }
-});
-
-function extractWixFileUrl(value){
-
-  const seen = new Set();
-
-  function walk(v){
-
-    if(typeof v === "string"){
-      if(v.startsWith("wix:")) return v;
-      return null;
-    }
-
-    if(!v || typeof v !== "object"){
-      return null;
-    }
-
-    if(seen.has(v)) return null;
-    seen.add(v);
-
-    if(Array.isArray(v)){
-      for(const item of v){
-        const found = walk(item);
-        if(found) return found;
-      }
-      return null;
-    }
-
-    const preferred = [
-      "fileUrl",
-      "fileURL",
-      "wixFileUrl",
-      "mediaUrl",
-      "url"
-    ];
-
-    for(const key of preferred){
-      if(typeof v[key] === "string" && v[key].startsWith("wix:")){
-        return v[key];
-      }
-    }
-
-    for(const key of Object.keys(v)){
-      const found = walk(v[key]);
-      if(found) return found;
-    }
-
-    return null;
-  }
-
-  return walk(value);
-}
-
-async function requestWixUploadUrl(filename){
-
-  const response = await wixRequest(
-    "REQUEST_UPLOAD_URL",
-    {
-      filename,
-      mimeType: "video/mp4"
-    },
-    20000
-  );
-
-  if(!response.uploadUrl){
-    throw new Error("Wix не вернул upload URL для Media Manager.");
-  }
-
-  return response.uploadUrl;
-}
-
-async function uploadResultToWixMediaManager(){
-
-  if(!resultBlob || !resultBlob.size){
-    throw new Error("Нет готового MP4 для загрузки в Wix Media Manager.");
-  }
-
-  if(!isEmbeddedPage()){
-    throw new Error("Media Manager bridge используется только внутри Wix.");
-  }
-
-  const filename =
-    fileBaseName(
-      sourceFile && sourceFile.name
-    ) + "_edited.mp4";
-
-  setStatus(
-    "Получаем защищённую ссылку Wix…",
-    true
-  );
-
-  const uploadUrl =
-    await requestWixUploadUrl(filename);
-
-  setStatus(
-    "Загружаем готовое MP4 в Wix…",
-    true
-  );
-
-  /*
-   * Wix's getUploadUrl() endpoint accepts a multipart upload.
-   * Do not set Content-Type manually here: the browser adds the
-   * required multipart boundary automatically.
-   */
-  const formData = new FormData();
-
-  formData.append(
-    "upload_url",
-    uploadUrl
-  );
-
-  formData.append(
-    "file",
-    resultBlob,
-    filename
-  );
-
-  const response =
-    await fetch(uploadUrl, {
-      method: "POST",
-      body: formData
-    });
-
-  if(!response.ok){
-
-    let details = "";
-
-    try{
-      details = await response.text();
-    }catch(e){}
-
-    throw new Error(
-      "Wix Media Manager upload failed: HTTP " +
-      response.status +
-      (details ? " — " + details.slice(0,300) : "")
-    );
-  }
-
-  let uploadResult = null;
-
-  try{
-    uploadResult = await response.json();
-  }catch(error){
-    uploadResult = null;
-  }
-
-  console.log(
-    "AURA Wix Media upload response:",
-    uploadResult
-  );
-
-  const fileUrl =
-    extractWixFileUrl(uploadResult);
-
-  if(!fileUrl){
-    throw new Error(
-      "Wix принял MP4, но не вернул fileUrl. Откройте Console и проверьте ответ Media Manager."
-    );
-  }
-
-  setStatus(
-    "MP4 загружено в Wix. Готовим скачивание…",
-    true
-  );
-
-  await wixRequest(
-    "REQUEST_DOWNLOAD",
-    {
-      fileUrl,
-      filename
-    },
-    45000
-  );
-
-  setStatus(
-    "Скачивание MP4 запущено через Wix",
-    true
-  );
-
-  return true;
-}
-
-/* =====================================================
-   DOWNLOAD METHOD 1 — WIX MEDIA MANAGER
-===================================================== */
-
-async function downloadViaWixMediaManager(){
-
-  if(!isEmbeddedPage()){
-    throw new Error("AURA не встроена в Wix.");
-  }
-
-  return uploadResultToWixMediaManager();
-}
-
-/* =====================================================
-   DOWNLOAD METHOD 2 — SAVE PICKER
+   DOWNLOAD METHOD 1
+   File System Access API
 ===================================================== */
 
 async function downloadWithSavePicker(){
 
-  if(!resultBlob){
-    throw new Error("Нет готового файла.");
+  if(
+    !resultBlob
+  ){
+
+    throw new Error(
+      "Нет готового файла."
+    );
+
   }
 
-  if(typeof window.showSaveFilePicker !== "function"){
-    throw new Error("Save Picker недоступен.");
+
+  if(
+    typeof window.showSaveFilePicker !==
+      "function"
+  ){
+
+    throw new Error(
+      "Save Picker недоступен."
+    );
+
   }
+
 
   const filename =
     fileBaseName(
-      sourceFile && sourceFile.name
-    ) + "_edited.mp4";
+      sourceFile &&
+      sourceFile.name
+    ) +
+    "_edited.mp4";
+
 
   const handle =
     await window.showSaveFilePicker({
-      suggestedName: filename,
+
+      suggestedName:
+        filename,
+
       types:[
         {
-          description: "MP4 video",
-          accept:{"video/mp4":[".mp4"]}
+          description:
+            "MP4 video",
+
+          accept:{
+            "video/mp4":[
+              ".mp4"
+            ]
+          }
         }
       ]
+
     });
+
 
   const writable =
     await handle.createWritable();
 
-  await writable.write(resultBlob);
+
+  await writable.write(
+    resultBlob
+  );
+
+
   await writable.close();
+
 
   return true;
 }
 
+
 /* =====================================================
-   DOWNLOAD METHOD 3 — ANCHOR
+   DOWNLOAD METHOD 2
+   Anchor download
 ===================================================== */
 
 function downloadWithAnchor(){
 
-  if(!resultURL || !resultBlob){
-    throw new Error("Нет готового файла.");
+  if(
+    !resultURL ||
+    !resultBlob
+  ){
+
+    throw new Error(
+      "Нет готового файла."
+    );
+
   }
+
 
   const filename =
     fileBaseName(
-      sourceFile && sourceFile.name
-    ) + "_edited.mp4";
+      sourceFile &&
+      sourceFile.name
+    ) +
+    "_edited.mp4";
+
 
   const anchor =
-    document.createElement("a");
+    document.createElement(
+      "a"
+    );
 
-  anchor.href = resultURL;
-  anchor.download = filename;
-  anchor.rel = "noopener";
-  anchor.style.display = "none";
 
-  document.body.appendChild(anchor);
+  anchor.href =
+    resultURL;
+
+  anchor.download =
+    filename;
+
+  anchor.rel =
+    "noopener";
+
+
+  /*
+   * Do not set target="_blank" here.
+   * A new tab opens the Blob URL instead of
+   * starting a direct download.
+   */
+
+
+  /*
+   * Add to DOM before click.
+   */
+
+  anchor.style.display =
+    "none";
+
+
+  document.body.appendChild(
+    anchor
+  );
+
+
   anchor.click();
 
-  setTimeout(() => {
-    try{ anchor.remove(); }catch(e){}
-  }, 1000);
+
+  setTimeout(
+    () => {
+
+      try{
+        anchor.remove();
+      }catch(e){}
+
+    },
+    1000
+  );
+
 
   return true;
 }
 
+
 /* =====================================================
-   DIRECT LINK / OPEN RESULT
+   DOWNLOAD METHOD 3
+   OPEN RESULT
 ===================================================== */
 
-function openDirectMP4Link(){
+function openResult(){
 
-  if(!resultURL || !resultBlob){
-    alert("Сначала дождитесь завершения обработки.");
+  if(
+    !resultURL ||
+    !resultBlob
+  ){
+
+    alert(
+      "Готового видео пока нет."
+    );
+
     return;
   }
+
+
+  /*
+   * This is the most reliable fallback
+   * when Wix/browser blocks download.
+   */
 
   const newWindow =
     window.open(
       resultURL,
-      "_blank",
-      "noopener,noreferrer"
+      "_blank"
     );
 
+
   if(!newWindow){
+
     alert(
       "Браузер заблокировал новое окно.\n\n" +
       "Разрешите всплывающие окна для сайта Wix."
     );
+
     return;
   }
 
-  try{ newWindow.focus(); }catch(e){}
+
+  try{
+
+    newWindow.focus();
+
+  }catch(e){}
 }
 
-function openResult(){
-
-  if(!resultURL || !resultBlob){
-    alert("Готового видео пока нет.");
-    return;
-  }
-
-  const newWindow =
-    window.open(resultURL, "_blank");
-
-  if(!newWindow){
-    alert(
-      "Браузер заблокировал новое окно.\n\n" +
-      "Разрешите всплывающие окна для сайта Wix."
-    );
-    return;
-  }
-
-  try{ newWindow.focus(); }catch(e){}
-}
 
 /* =====================================================
    SMART DOWNLOAD
@@ -4398,45 +4098,84 @@ function openResult(){
 
 async function smartDownload(){
 
-  if(!resultBlob || !resultURL){
-    alert("Сначала дождитесь завершения обработки.");
+  if(
+    !resultBlob ||
+    !resultURL
+  ){
+
+    alert(
+      "Сначала дождитесь завершения обработки."
+    );
+
     return;
   }
 
+
   /*
-   * WIX METHOD — PRIMARY
+   * Wix embeds the editor in a cross-origin iframe.
+   * showSaveFilePicker is not available there and
+   * awaiting its rejection consumes the temporary
+   * user activation required for a download.
    *
-   * The MP4 is uploaded directly from the HTML component
-   * to Wix Media Manager. Only the small fileUrl is sent
-   * through postMessage(). Wix then creates a temporary
-   * download URL and starts the download from the parent
-   * page. This avoids the sandbox allow-downloads problem.
+   * Start the anchor download synchronously while
+   * the original button click is still active.
    */
 
-  if(isEmbeddedPage()){
+  let isEmbedded = false;
+
+
+  try{
+
+    isEmbedded =
+      window.self !== window.top;
+
+  }catch(error){
+
+    isEmbedded = true;
+
+  }
+
+
+  if(isEmbedded){
 
     try{
-      await downloadViaWixMediaManager();
+
+      downloadWithAnchor();
+
+
+      setStatus(
+        "Скачивание запущено",
+        true
+      );
+
+
       return;
+
     }catch(error){
 
-      console.error(
-        "AURA Wix Media Manager download failed:",
+      console.log(
+        "AURA iframe download failed:",
         error
       );
 
-      setStatus(
-        "Wix Media Manager не сработал — пробуем резервный способ…",
-        true
-      );
+
+      openResult();
+
+      return;
+
     }
+
   }
 
+
   /*
-   * DIRECT SITE METHOD
+   * METHOD 1
+   *
+   * Native Save Picker.
    */
 
   try{
+
     await downloadWithSavePicker();
 
     setStatus(
@@ -4447,39 +4186,72 @@ async function smartDownload(){
     return;
 
   }catch(error){
+
     console.log(
-      "AURA Save Picker unavailable:",
+      "AURA download method 1 unavailable:",
       error
     );
+
   }
 
+
   /*
-   * ANCHOR FALLBACK
+   * METHOD 2
+   *
+   * Normal browser download.
    */
 
   try{
+
     downloadWithAnchor();
+
 
     setStatus(
       "Скачивание запущено",
       true
     );
 
+
+    /*
+     * We cannot reliably know whether
+     * Chrome actually accepted a sandboxed
+     * iframe download.
+     *
+     * Therefore keep fallback visible.
+     */
+
+    setTimeout(
+      () => {
+
+        setStatus(
+          "Если загрузка не началась — нажмите «Открыть видео»",
+          true
+        );
+
+      },
+      1200
+    );
+
+
     return;
 
   }catch(error){
+
     console.log(
-      "AURA anchor download failed:",
+      "AURA download method 2 failed:",
       error
     );
+
   }
 
+
   /*
-   * LAST FALLBACK
+   * METHOD 3
    */
 
   openResult();
 }
+
 
 /* =====================================================
    DOWNLOAD BUTTONS
@@ -4493,14 +4265,6 @@ async () => {
 };
 
 
-directLinkBtn.onclick =
-() => {
-
-  openDirectMP4Link();
-
-};
-
-
 openResultBtn.onclick =
 () => {
 
@@ -4508,20 +4272,6 @@ openResultBtn.onclick =
 
 };
 
-
-closeDownloadBtn.onclick =
-() => {
-
-  downloadPanel.classList.remove(
-    "show"
-  );
-
-  setStatus(
-    "",
-    false
-  );
-
-};
 
 
 /* =====================================================
@@ -4564,18 +4314,13 @@ console.log(
 );
 
 console.log(
-  "AURA embed mode:",
-  isEmbeddedPage() ? "Wix/iframe" : "standalone"
-);
-
-console.log(
   "FFmpeg version:",
   FFMPEG_VERSION
 );
 
 console.log(
-  "FFmpeg local assets:",
-  ASSET_BASE
+  "Single-thread core CDNs:",
+  CORE_BASES
 );
 
 console.log(
