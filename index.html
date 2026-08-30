@@ -872,6 +872,13 @@ video{
 
           <button
             class="download-open"
+            id="directLinkBtn"
+          >
+            Прямая ссылка на MP4
+          </button>
+
+          <button
+            class="download-open"
             id="openResultBtn"
           >
             Открыть видео
@@ -1236,6 +1243,9 @@ const downloadBtn =
 
 const openResultBtn =
   $("openResultBtn");
+
+const directLinkBtn =
+  $("directLinkBtn");
 
 const closeDownloadBtn =
   $("closeDownloadBtn");
@@ -4308,6 +4318,57 @@ function downloadWithAnchor(){
 
 
 /* =====================================================
+   DIRECT LINK
+
+   Creates a normal blob: URL for the finished MP4 and
+   opens it in a new top-level tab/window. This is the
+   reliable fallback for Wix when sandboxed downloads are
+   blocked. The browser may display the MP4 instead of
+   forcing a download; the user can then use the browser
+   download control.
+===================================================== */
+
+function openDirectMP4Link(){
+
+  if(
+    !resultURL ||
+    !resultBlob
+  ){
+
+    alert(
+      "Сначала дождитесь завершения обработки."
+    );
+
+    return;
+
+  }
+
+  const newWindow =
+    window.open(
+      resultURL,
+      "_blank",
+      "noopener,noreferrer"
+    );
+
+  if(!newWindow){
+
+    alert(
+      "Браузер заблокировал новое окно.\n\n" +
+      "Разрешите всплывающие окна для сайта Wix."
+    );
+
+    return;
+
+  }
+
+  try{
+    newWindow.focus();
+  }catch(e){}
+
+}
+
+
+/* =====================================================
    DOWNLOAD METHOD 3
    OPEN RESULT
 ===================================================== */
@@ -4506,6 +4567,14 @@ downloadBtn.onclick =
 async () => {
 
   await smartDownload();
+
+};
+
+
+directLinkBtn.onclick =
+() => {
+
+  openDirectMP4Link();
 
 };
 
