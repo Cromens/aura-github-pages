@@ -1,0 +1,4229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+<title>AURA Video Editor</title>
+
+<style>
+:root{
+  --bg:#10131a;
+  --panel:rgba(40,40,40,.16);
+  --border:rgba(255,255,255,.07);
+  --button:#282828;
+  --buttonText:#d8deea;
+  --primary:#053a99;
+  --accent:#21c7ff;
+  --muted:#778398;
+  --white:#fff;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+html,
+body{
+  width:100%;
+  height:100%;
+  margin:0;
+  overflow:hidden;
+}
+
+body{
+  background:var(--bg);
+  color:var(--white);
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  font-size:12px;
+}
+
+button,
+input{
+  font-family:inherit;
+}
+
+button{
+  border:0;
+}
+
+#app{
+  width:100%;
+  height:100%;
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  overflow:hidden;
+}
+
+/* =====================================================
+   PANELS
+===================================================== */
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:15px;
+  min-width:0;
+}
+
+/* =====================================================
+   TOOLBAR
+===================================================== */
+
+.toolbar{
+  height:52px;
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  gap:5px;
+  padding:7px 9px;
+  overflow:hidden;
+}
+
+.tool{
+  height:30px;
+  min-width:30px;
+  padding:0 10px;
+  border-radius:9px;
+  background:var(--button);
+  color:var(--buttonText);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  cursor:pointer;
+  white-space:nowrap;
+  font-size:11px;
+  font-weight:650;
+  transition:.15s ease;
+}
+
+.tool:hover{
+  filter:brightness(1.25);
+}
+
+.tool:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.tool.active{
+  background:var(--primary);
+  color:#fff;
+}
+
+.tool.icon{
+  width:30px;
+  padding:0;
+}
+
+.tool svg{
+  width:16px;
+  height:16px;
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.9;
+}
+
+.sep{
+  width:1px;
+  height:24px;
+  background:rgba(255,255,255,.08);
+  margin:0 4px;
+}
+
+.toolbar-spacer{
+  flex:1;
+}
+
+#fileInput{
+  display:none;
+}
+
+/* =====================================================
+   MAIN
+===================================================== */
+
+.main{
+  flex:1;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  overflow:hidden;
+}
+
+/* =====================================================
+   PREVIEW
+===================================================== */
+
+.preview-panel{
+  flex:1;
+  min-height:150px;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background:#080b11;
+}
+
+.preview-stage{
+  position:relative;
+  width:min(78%,calc(100% - 20px));
+  height:calc(100% - 20px);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+
+video{
+  display:block;
+  max-width:100%;
+  max-height:100%;
+  width:auto;
+  height:auto;
+  object-fit:contain;
+  user-select:none;
+}
+
+.empty{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  color:var(--muted);
+  pointer-events:none;
+}
+
+.empty strong{
+  color:#c0c8d8;
+  font-size:14px;
+}
+
+.empty span{
+  font-size:10px;
+}
+
+/* =====================================================
+   CROP
+===================================================== */
+
+.crop-box{
+  position:absolute;
+  display:none;
+  border:1px solid var(--accent);
+  box-shadow:0 0 0 9999px rgba(0,0,0,.32);
+  z-index:20;
+  touch-action:none;
+}
+
+.crop-box .lineV,
+.crop-box .lineH{
+  position:absolute;
+  background:rgba(255,255,255,.18);
+  pointer-events:none;
+}
+
+.crop-box .lineV{
+  top:0;
+  bottom:0;
+  width:1px;
+}
+
+.crop-box .lineV.v1{
+  left:33.333%;
+}
+
+.crop-box .lineV.v2{
+  left:66.666%;
+}
+
+.crop-box .lineH{
+  left:0;
+  right:0;
+  height:1px;
+}
+
+.crop-box .lineH.h1{
+  top:33.333%;
+}
+
+.crop-box .lineH.h2{
+  top:66.666%;
+}
+
+.handle{
+  position:absolute;
+  width:11px;
+  height:11px;
+  background:#fff;
+  border-radius:3px;
+  box-shadow:0 0 0 1px rgba(0,0,0,.4);
+  z-index:30;
+}
+
+.handle.tl{
+  left:-6px;
+  top:-6px;
+  cursor:nwse-resize;
+}
+
+.handle.tr{
+  right:-6px;
+  top:-6px;
+  cursor:nesw-resize;
+}
+
+.handle.bl{
+  left:-6px;
+  bottom:-6px;
+  cursor:nesw-resize;
+}
+
+.handle.br{
+  right:-6px;
+  bottom:-6px;
+  cursor:nwse-resize;
+}
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.status{
+  position:absolute;
+  left:50%;
+  bottom:9px;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,.8);
+  color:#dce5f2;
+  padding:7px 13px;
+  border-radius:8px;
+  font-size:10px;
+  z-index:100;
+  display:none;
+  pointer-events:none;
+  white-space:nowrap;
+}
+
+.status.show{
+  display:block;
+}
+
+.engine{
+  position:absolute;
+  top:8px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(0,0,0,.7);
+  color:#aab6c9;
+  padding:5px 10px;
+  border-radius:7px;
+  font-size:9px;
+  display:none;
+  z-index:100;
+}
+
+.engine.show{
+  display:block;
+}
+
+.progress{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:3px;
+  background:rgba(255,255,255,.08);
+  z-index:90;
+}
+
+.progress i{
+  display:block;
+  height:100%;
+  width:0;
+  background:var(--accent);
+  transition:width .15s;
+}
+
+/* =====================================================
+   DOWNLOAD
+===================================================== */
+
+.download-panel{
+  position:absolute;
+  inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  gap:10px;
+  background:rgba(5,8,13,.72);
+  backdrop-filter:blur(5px);
+  z-index:150;
+}
+
+.download-panel.show{
+  display:flex;
+}
+
+.download-title{
+  font-size:14px;
+  font-weight:700;
+}
+
+.download-subtitle{
+  font-size:10px;
+  color:#8793a8;
+  margin-bottom:4px;
+}
+
+.download-main,
+.download-open{
+  min-width:190px;
+  padding:11px 18px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.download-main{
+  background:#fff;
+  color:#0a0d12;
+}
+
+.download-open{
+  background:var(--primary);
+  color:#fff;
+}
+
+.download-main:hover,
+.download-open:hover{
+  filter:brightness(1.12);
+}
+
+.download-close{
+  background:transparent;
+  color:#7f8ba0;
+  cursor:pointer;
+  padding:5px 10px;
+  font-size:10px;
+}
+
+/* =====================================================
+   CROP PANEL
+===================================================== */
+
+.crop-panel{
+  display:none;
+  min-height:82px;
+  padding:10px 14px;
+}
+
+.crop-panel.show{
+  display:block;
+}
+
+.crop-header{
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:8px;
+}
+
+.crop-header strong{
+  font-size:12px;
+}
+
+.crop-header span{
+  color:var(--muted);
+  font-size:10px;
+}
+
+.crop-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:7px 24px;
+}
+
+.range-row{
+  display:grid;
+  grid-template-columns:65px 1fr 43px;
+  gap:8px;
+  align-items:center;
+  color:#aeb8c9;
+}
+
+.range-row input{
+  width:100%;
+  accent-color:#1677ff;
+}
+
+.range-val{
+  height:25px;
+  border-radius:7px;
+  background:rgba(0,0,0,.22);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#bac5d7;
+  font-size:10px;
+}
+
+/* =====================================================
+   TIMELINE
+===================================================== */
+
+.timeline{
+  height:78px;
+  min-height:78px;
+  padding:7px 10px;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  background:#070a10;
+}
+
+.film{
+  flex:1;
+  min-height:0;
+  position:relative;
+  overflow:hidden;
+  border-radius:6px;
+  background:#020305;
+}
+
+.thumbs{
+  width:100%;
+  height:100%;
+  display:flex;
+  overflow:hidden;
+}
+
+.thumb{
+  flex:1;
+  min-width:0;
+  height:100%;
+  object-fit:cover;
+  opacity:.75;
+}
+
+.trim-fill{
+  position:absolute;
+  top:0;
+  bottom:0;
+  background:rgba(33,199,255,.11);
+  border-left:3px solid var(--accent);
+  border-right:3px solid var(--accent);
+  pointer-events:none;
+}
+
+.trim-handle{
+  position:absolute;
+  top:-2px;
+  bottom:-2px;
+  width:12px;
+  border-radius:5px;
+  background:var(--accent);
+  box-shadow:0 0 8px rgba(33,199,255,.35);
+  cursor:ew-resize;
+  z-index:20;
+}
+
+.trim-handle:after{
+  content:"";
+  position:absolute;
+  left:4px;
+  top:22%;
+  bottom:22%;
+  width:3px;
+  border-radius:2px;
+  background:rgba(255,255,255,.75);
+}
+
+.time-scale{
+  display:flex;
+  justify-content:space-between;
+  color:#536078;
+  font-size:9px;
+}
+
+/* =====================================================
+   BOTTOM
+===================================================== */
+
+.bottom{
+  height:48px;
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+
+.play{
+  width:56px;
+  height:100%;
+  border-radius:11px;
+  background:var(--button);
+  color:#8e99ab;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.play:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.play svg{
+  width:17px;
+  height:17px;
+  fill:currentColor;
+}
+
+.time-inputs{
+  height:100%;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:0 10px;
+  border-radius:11px;
+  background:var(--button);
+}
+
+.time-inputs input{
+  width:70px;
+  height:28px;
+  border:0;
+  outline:0;
+  border-radius:7px;
+  background:rgba(0,0,0,.17);
+  color:#fff;
+  text-align:center;
+  font-size:11px;
+}
+
+.file-info{
+  color:#69758b;
+  font-size:10px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.bottom-spacer{
+  flex:1;
+}
+
+.save{
+  min-width:125px;
+  height:100%;
+  border-radius:11px;
+  background:#fff;
+  color:#0a0d13;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.save:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:700px){
+
+  #app{
+    padding:6px;
+    gap:6px;
+  }
+
+  .toolbar{
+    height:44px;
+    min-height:44px;
+  }
+
+  .tool{
+    padding:0 7px;
+  }
+
+  .tool span{
+    display:none;
+  }
+
+  .preview-stage{
+    width:95%;
+    height:calc(100% - 10px);
+  }
+
+  .crop-grid{
+    gap:6px;
+  }
+
+  .range-row{
+    grid-template-columns:43px 1fr 40px;
+  }
+
+  .file-info{
+    display:none;
+  }
+
+  .save{
+    min-width:100px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+  <!-- =================================================
+       TOOLBAR
+  ================================================== -->
+
+  <div class="panel toolbar">
+
+    <button class="tool active" id="openBtn">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M4 17.5V6.8A2.8 2.8 0 0 1 6.8 4h5.6"/>
+        <path d="M8 16l8-8 4 4-8 8H8z"/>
+        <path d="M14 4h6v6"/>
+      </svg>
+
+      <span>Обрезка</span>
+
+    </button>
+
+    <button class="tool icon" id="cropBtn" title="Кадрирование">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M7 3v14a2 2 0 0 0 2 2h14"/>
+        <path d="M17 21V7a2 2 0 0 0-2-2H1"/>
+      </svg>
+
+    </button>
+
+    <button class="tool icon" id="rotateBtn" title="Повернуть">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M4 12a8 8 0 1 0 2.3-5.7"/>
+        <path d="M4 4v6h6"/>
+      </svg>
+
+    </button>
+
+    <button class="tool icon" id="mirrorBtn" title="Отразить">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M12 3v18"/>
+        <path d="M4 6l6 6-6 6z"/>
+        <path d="M20 6l-6 6 6 6z"/>
+      </svg>
+
+    </button>
+
+    <button class="tool icon" id="muteBtn" title="Без звука">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M4 10v4h4l5 4V6l-5 4H4z"/>
+        <path d="M17 9l4 6M21 9l-4 6"/>
+      </svg>
+
+    </button>
+
+    <div class="sep"></div>
+
+    <button class="tool icon" id="resetBtn" title="Сбросить">
+
+      <svg viewBox="0 0 24 24">
+        <path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/>
+        <path d="M4 4v4.5h4.5"/>
+      </svg>
+
+    </button>
+
+    <div class="toolbar-spacer"></div>
+
+    <button
+      class="tool"
+      id="chooseBtn"
+      style="background:#053a99;color:#fff;"
+    >
+
+      <svg viewBox="0 0 24 24">
+        <path d="M12 3v12"/>
+        <path d="m7 8 5-5 5 5"/>
+        <path d="M5 13v6h14v-6"/>
+      </svg>
+
+      <span>Загрузить</span>
+
+    </button>
+
+    <input
+      id="fileInput"
+      type="file"
+      accept="video/*,.mp4,.mov,.webm,.m4v,.mkv,.avi"
+    >
+
+  </div>
+
+
+  <!-- =================================================
+       MAIN
+  ================================================== -->
+
+  <div class="main">
+
+    <!-- PREVIEW -->
+
+    <div class="panel preview-panel">
+
+      <div class="preview-stage" id="stage">
+
+        <video
+          id="video"
+          playsinline
+          preload="metadata"
+        ></video>
+
+        <div class="empty" id="empty">
+
+          <strong>AURA Video Editor</strong>
+
+          <span>
+            Загрузите MP4 / MOV / WebM
+          </span>
+
+        </div>
+
+        <!-- CROP BOX -->
+
+        <div class="crop-box" id="cropBox">
+
+          <div class="lineV v1"></div>
+          <div class="lineV v2"></div>
+
+          <div class="lineH h1"></div>
+          <div class="lineH h2"></div>
+
+          <i class="handle tl" data-h="tl"></i>
+          <i class="handle tr" data-h="tr"></i>
+          <i class="handle bl" data-h="bl"></i>
+          <i class="handle br" data-h="br"></i>
+
+        </div>
+
+
+        <div class="engine" id="engine">
+          FFmpeg не загружен
+        </div>
+
+
+        <div class="status" id="status"></div>
+
+
+        <div class="progress">
+          <i id="progressBar"></i>
+        </div>
+
+
+        <!-- DOWNLOAD WINDOW -->
+
+        <div
+          class="download-panel"
+          id="downloadPanel"
+        >
+
+          <div class="download-title">
+            Видео готово
+          </div>
+
+          <div class="download-subtitle">
+            Выберите способ сохранения MP4
+          </div>
+
+          <button
+            class="download-main"
+            id="downloadBtn"
+          >
+            Скачать MP4
+          </button>
+
+          <button
+            class="download-open"
+            id="openResultBtn"
+          >
+            Открыть видео
+          </button>
+
+          <button
+            class="download-close"
+            id="closeDownloadBtn"
+          >
+            Закрыть
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- CROP PANEL -->
+
+    <div
+      class="panel crop-panel"
+      id="cropPanel"
+    >
+
+      <div class="crop-header">
+
+        <strong>Кадрирование</strong>
+
+        <span>
+          Можно менять размер прямо мышью
+        </span>
+
+      </div>
+
+      <div class="crop-grid">
+
+        <div class="range-row">
+
+          <span>X</span>
+
+          <input
+            id="xRange"
+            type="range"
+            min="0"
+            max="95"
+            value="0"
+          >
+
+          <div class="range-val" id="xVal">
+            0%
+          </div>
+
+        </div>
+
+        <div class="range-row">
+
+          <span>Y</span>
+
+          <input
+            id="yRange"
+            type="range"
+            min="0"
+            max="95"
+            value="0"
+          >
+
+          <div class="range-val" id="yVal">
+            0%
+          </div>
+
+        </div>
+
+        <div class="range-row">
+
+          <span>Ширина</span>
+
+          <input
+            id="wRange"
+            type="range"
+            min="5"
+            max="100"
+            value="100"
+          >
+
+          <div class="range-val" id="wVal">
+            100%
+          </div>
+
+        </div>
+
+        <div class="range-row">
+
+          <span>Высота</span>
+
+          <input
+            id="hRange"
+            type="range"
+            min="5"
+            max="100"
+            value="100"
+          >
+
+          <div class="range-val" id="hVal">
+            100%
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- TIMELINE -->
+
+    <div class="panel timeline">
+
+      <div class="film" id="film">
+
+        <div
+          class="thumbs"
+          id="thumbs"
+        ></div>
+
+        <div
+          class="trim-fill"
+          id="trimFill"
+        ></div>
+
+        <div
+          class="trim-handle"
+          id="leftHandle"
+        ></div>
+
+        <div
+          class="trim-handle"
+          id="rightHandle"
+        ></div>
+
+      </div>
+
+      <div class="time-scale">
+
+        <span id="scaleStart">
+          00:00.0
+        </span>
+
+        <span id="scaleMid">
+          00:00.0
+        </span>
+
+        <span id="scaleEnd">
+          00:00.0
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- BOTTOM -->
+
+    <div class="bottom">
+
+      <button
+        class="play"
+        id="playBtn"
+        disabled
+      >
+
+        <svg
+          id="playIcon"
+          viewBox="0 0 24 24"
+        >
+          <path d="m8 5 11 7-11 7z"/>
+        </svg>
+
+      </button>
+
+
+      <div class="time-inputs">
+
+        <input
+          id="startInput"
+          value="00:00.0"
+        >
+
+        <input
+          id="endInput"
+          value="00:00.0"
+        >
+
+      </div>
+
+
+      <div
+        class="file-info"
+        id="fileInfo"
+      ></div>
+
+
+      <div class="bottom-spacer"></div>
+
+
+      <button
+        class="save"
+        id="saveBtn"
+        disabled
+      >
+        Сохранить
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =====================================================
+     FFMPEG.WASM 0.12.10
+     
+     ВАЖНО:
+     НЕ используем core-mt.
+     НЕ используем SharedArrayBuffer.
+====================================================== -->
+
+<script
+  src="./vendor/ffmpeg.js"
+></script>
+
+
+<script>
+"use strict";
+
+/* =====================================================
+   AURA VIDEO EDITOR
+   Same-origin FFmpeg WASM 0.12.10 for Wix iframe
+===================================================== */
+
+
+/* =====================================================
+   SETTINGS
+===================================================== */
+
+const MAX_FILE_MB = 200;
+
+const FFMPEG_VERSION = "0.12.10";
+
+/*
+ * SINGLE THREAD CORE.
+ *
+ * НЕ меняй на @ffmpeg/core-mt.
+ */
+
+/*
+ * @ffmpeg/core 0.12.15 is NOT a published package.
+ * Official single-thread core: 0.12.10.
+ * These are local same-origin files on GitHub Pages.
+ * No FFmpeg CDN is used at runtime.
+ */
+const CORE_BASES = ["./vendor"];
+
+
+/* =====================================================
+   DOM
+===================================================== */
+
+const $ = id =>
+  document.getElementById(id);
+
+const video =
+  $("video");
+
+const stage =
+  $("stage");
+
+const empty =
+  $("empty");
+
+const fileInput =
+  $("fileInput");
+
+const chooseBtn =
+  $("chooseBtn");
+
+const openBtn =
+  $("openBtn");
+
+const saveBtn =
+  $("saveBtn");
+
+const playBtn =
+  $("playBtn");
+
+const playIcon =
+  $("playIcon");
+
+const resetBtn =
+  $("resetBtn");
+
+const rotateBtn =
+  $("rotateBtn");
+
+const mirrorBtn =
+  $("mirrorBtn");
+
+const muteBtn =
+  $("muteBtn");
+
+const cropBtn =
+  $("cropBtn");
+
+const cropPanel =
+  $("cropPanel");
+
+const cropBox =
+  $("cropBox");
+
+const thumbs =
+  $("thumbs");
+
+const film =
+  $("film");
+
+const leftHandle =
+  $("leftHandle");
+
+const rightHandle =
+  $("rightHandle");
+
+const trimFill =
+  $("trimFill");
+
+const startInput =
+  $("startInput");
+
+const endInput =
+  $("endInput");
+
+const status =
+  $("status");
+
+const engine =
+  $("engine");
+
+const progressBar =
+  $("progressBar");
+
+const fileInfo =
+  $("fileInfo");
+
+const downloadPanel =
+  $("downloadPanel");
+
+const downloadBtn =
+  $("downloadBtn");
+
+const openResultBtn =
+  $("openResultBtn");
+
+const closeDownloadBtn =
+  $("closeDownloadBtn");
+
+
+/* =====================================================
+   STATE
+===================================================== */
+
+let ffmpeg = null;
+
+let ffmpegLoaded = false;
+
+let ffmpegLoading = false;
+
+let sourceFile = null;
+
+let sourceURL = null;
+
+let resultBlob = null;
+
+let resultURL = null;
+
+let duration = 0;
+
+let startTime = 0;
+
+let endTime = 0;
+
+let rotate = 0;
+
+let mirror = false;
+
+let muted = false;
+
+let cropMode = false;
+
+let isPlaying = false;
+
+let isExporting = false;
+
+let pointerDrag = null;
+
+
+/*
+ * Crop is stored as percentages.
+ */
+
+const crop = {
+  x: 0,
+  y: 0,
+  w: 100,
+  h: 100
+};
+
+
+/* =====================================================
+   BASIC HELPERS
+===================================================== */
+
+function formatTime(seconds){
+
+  seconds =
+    Math.max(
+      0,
+      Number(seconds) || 0
+    );
+
+  const minutes =
+    Math.floor(
+      seconds / 60
+    );
+
+  const secs =
+    seconds -
+    minutes * 60;
+
+  return (
+    String(minutes)
+      .padStart(2,"0")
+    +
+    ":"
+    +
+    secs
+      .toFixed(1)
+      .padStart(4,"0")
+  );
+}
+
+
+function parseTime(value){
+
+  const text =
+    String(value || "")
+      .trim();
+
+  if(
+    text.includes(":")
+  ){
+
+    const parts =
+      text.split(":");
+
+    return Math.max(
+      0,
+      Number(parts[0] || 0) * 60 +
+      Number(parts[1] || 0)
+    );
+
+  }
+
+  return Math.max(
+    0,
+    Number(text) || 0
+  );
+}
+
+
+function setStatus(
+  text,
+  visible = true
+){
+
+  status.textContent =
+    text || "";
+
+  status.classList.toggle(
+    "show",
+    visible && !!text
+  );
+}
+
+
+function setProgress(percent){
+
+  percent =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        Number(percent) || 0
+      )
+    );
+
+  progressBar.style.width =
+    percent + "%";
+}
+
+
+function revokeURL(url){
+
+  if(!url)
+    return;
+
+  try{
+    URL.revokeObjectURL(url);
+  }catch(e){}
+}
+
+
+function fileBaseName(name){
+
+  return String(
+    name || "video"
+  ).replace(
+    /\.[^/.]+$/,
+    ""
+  );
+}
+
+
+/* =====================================================
+   DETECT FFMPEG GLOBAL
+===================================================== */
+
+function getFFmpegClass(){
+
+  /*
+   * Different UMD builds/browser setups
+   * can expose the class under different
+   * global names.
+   */
+
+  if(
+    window.FFmpegWASM &&
+    typeof window.FFmpegWASM.FFmpeg ===
+      "function"
+  ){
+
+    return window.FFmpegWASM.FFmpeg;
+
+  }
+
+
+  if(
+    window.FFmpeg &&
+    typeof window.FFmpeg.FFmpeg ===
+      "function"
+  ){
+
+    return window.FFmpeg.FFmpeg;
+
+  }
+
+
+  if(
+    typeof window.FFmpeg ===
+      "function"
+  ){
+
+    return window.FFmpeg;
+
+  }
+
+
+  return null;
+}
+
+
+/* =====================================================
+   BLOB URL LOADER
+===================================================== */
+
+/*
+ * We intentionally implement the equivalent
+ * of ffmpeg util's toBlobURL ourselves.
+ *
+ * This avoids loading another UMD package
+ * into the Wix iframe.
+ */
+
+async function downloadAsBlobURL(
+  urls,
+  mime
+){
+  const list = Array.isArray(urls) ? urls : [urls];
+  let lastError = null;
+
+  for(const url of list){
+    try{
+      console.log("AURA: loading FFmpeg resource:", url);
+
+      const response = await fetch(
+        url,
+        {
+          mode:"cors",
+          cache:"force-cache"
+        }
+      );
+
+      if(!response.ok){
+        throw new Error("HTTP " + response.status);
+      }
+
+      const blob = await response.blob();
+
+      if(!blob.size){
+        throw new Error("Пустой ресурс");
+      }
+
+      console.log(
+        "AURA: FFmpeg resource loaded:",
+        url,
+        blob.size,
+        "bytes"
+      );
+
+      return URL.createObjectURL(
+        new Blob([blob], {type:mime})
+      );
+    }catch(error){
+      lastError = error;
+      console.warn(
+        "AURA: CDN failed:",
+        url,
+        error
+      );
+    }
+  }
+
+  throw new Error(
+    "Не удалось загрузить ресурс FFmpeg ни с одного CDN. " +
+    (lastError && lastError.message
+      ? lastError.message
+      : "Неизвестная ошибка")
+  );
+}
+
+
+/* =====================================================
+   LOAD FFMPEG
+===================================================== */
+
+async function loadFFmpeg(){
+
+  if(ffmpegLoaded)
+    return true;
+
+
+  if(ffmpegLoading){
+
+    while(ffmpegLoading){
+
+      await new Promise(
+        resolve =>
+          setTimeout(
+            resolve,
+            100
+          )
+      );
+
+    }
+
+    return ffmpegLoaded;
+  }
+
+
+  ffmpegLoading =
+    true;
+
+
+  engine.classList.add(
+    "show"
+  );
+
+  engine.textContent =
+    "Загрузка FFmpeg…";
+
+
+  setStatus(
+    "Загрузка видеодвижка…",
+    true
+  );
+
+
+  try{
+
+    /*
+     * IMPORTANT:
+     *
+     * There is deliberately NO
+     * SharedArrayBuffer code here.
+     */
+
+    const FFmpegClass =
+      getFFmpegClass();
+
+
+    if(!FFmpegClass){
+
+      throw new Error(
+        "Класс FFmpeg не найден. " +
+        "Проверьте загрузку ffmpeg.js."
+      );
+
+    }
+
+
+    ffmpeg =
+      new FFmpegClass();
+
+
+    /*
+     * Log.
+     */
+
+    try{
+
+      ffmpeg.on(
+        "log",
+        ({message}) => {
+
+          console.log(
+            "[AURA FFmpeg]",
+            message
+          );
+
+        }
+      );
+
+    }catch(e){}
+
+
+    /*
+     * Progress.
+     */
+
+    try{
+
+      ffmpeg.on(
+        "progress",
+        ({progress}) => {
+
+          if(
+            isExporting &&
+            typeof progress ===
+              "number"
+          ){
+
+            /*
+             * Keep 0-95 for FFmpeg.
+             */
+
+            setProgress(
+              Math.min(
+                95,
+                Math.max(
+                  0,
+                  progress * 95
+                )
+              )
+            );
+
+          }
+
+        }
+      );
+
+    }catch(e){}
+
+
+    /*
+     * Download core files.
+     *
+     * Using Blob URLs makes the loading
+     * more tolerant of cross-origin iframe
+     * restrictions.
+     */
+
+    engine.textContent =
+      "Загрузка ядра FFmpeg…";
+
+
+    const coreURL = "./vendor/ffmpeg-core.js";
+    const wasmURL = "./vendor/ffmpeg-core.wasm";
+
+
+    /*
+     * Load SINGLE THREAD core.
+     *
+     * There is NO workerURL here because
+     * we are NOT using core-mt.
+     */
+
+    await ffmpeg.load({
+      coreURL: coreURL,
+      wasmURL: wasmURL,
+      classWorkerURL: "./vendor/814.ffmpeg.js"
+    });
+
+
+    /*
+     * Core files are same-origin static files.
+     * Do not revoke them.
+     */
+
+
+    ffmpegLoaded =
+      true;
+
+
+    engine.textContent =
+      "FFmpeg готов";
+
+
+    setStatus(
+      "",
+      false
+    );
+
+
+    setTimeout(
+      () => {
+
+        engine.classList.remove(
+          "show"
+        );
+
+      },
+      1200
+    );
+
+
+    console.log(
+      "AURA: FFmpeg " +
+      FFMPEG_VERSION +
+      " single-thread loaded."
+    );
+
+
+    return true;
+
+  }catch(error){
+
+    console.error(
+      "AURA FFmpeg load error:",
+      error
+    );
+
+
+    engine.textContent =
+      "Ошибка FFmpeg";
+
+
+    setStatus(
+      "FFmpeg не удалось загрузить",
+      true
+    );
+
+
+    alert(
+      "Не удалось загрузить FFmpeg.\n\n" +
+      "Ошибка:\n" +
+      error.message +
+      "\n\n" +
+      "AURA использует single-thread FFmpeg и не требует SharedArrayBuffer."
+    );
+
+
+    return false;
+
+  }finally{
+
+    ffmpegLoading =
+      false;
+
+  }
+}
+
+
+/* =====================================================
+   LOAD VIDEO
+===================================================== */
+
+function loadVideoFile(file){
+
+  if(!file)
+    return;
+
+
+  if(
+    file.size >
+    MAX_FILE_MB * 1024 * 1024
+  ){
+
+    alert(
+      "Видео слишком большое.\n\n" +
+      "Максимальный размер: " +
+      MAX_FILE_MB +
+      " MB."
+    );
+
+    return;
+  }
+
+
+  const isVideo =
+    file.type.startsWith(
+      "video/"
+    )
+    ||
+    /\.(mp4|mov|webm|m4v|mkv|avi)$/i
+      .test(file.name);
+
+
+  if(!isVideo){
+
+    alert(
+      "Выберите видеофайл."
+    );
+
+    return;
+  }
+
+
+  revokeURL(
+    sourceURL
+  );
+
+  revokeURL(
+    resultURL
+  );
+
+
+  sourceFile =
+    file;
+
+
+  sourceURL =
+    URL.createObjectURL(
+      file
+    );
+
+
+  resultBlob =
+    null;
+
+  resultURL =
+    null;
+
+
+  video.src =
+    sourceURL;
+
+  video.load();
+
+
+  empty.style.display =
+    "none";
+
+
+  fileInfo.textContent =
+    file.name +
+    " · " +
+    (
+      file.size /
+      1024 /
+      1024
+    ).toFixed(1) +
+    " MB";
+
+
+  downloadPanel.classList.remove(
+    "show"
+  );
+
+
+  setProgress(0);
+
+  setStatus(
+    "Загрузка видео…",
+    true
+  );
+}
+
+
+/* =====================================================
+   FILE BUTTONS
+===================================================== */
+
+openBtn.onclick =
+chooseBtn.onclick =
+() => {
+
+  if(isExporting)
+    return;
+
+  fileInput.click();
+};
+
+
+fileInput.addEventListener(
+  "change",
+  event => {
+
+    loadVideoFile(
+      event.target.files[0]
+    );
+
+    fileInput.value = "";
+
+  }
+);
+
+
+/* =====================================================
+   VIDEO METADATA
+===================================================== */
+
+video.addEventListener(
+  "loadedmetadata",
+  () => {
+
+    duration =
+      Number(video.duration) || 0;
+
+
+    startTime =
+      0;
+
+    endTime =
+      duration;
+
+
+    startInput.value =
+      formatTime(
+        startTime
+      );
+
+    endInput.value =
+      formatTime(
+        endTime
+      );
+
+
+    saveBtn.disabled =
+      false;
+
+    playBtn.disabled =
+      false;
+
+
+    updateTrimUI();
+
+    updateScale();
+
+    updateCropUI();
+
+    createThumbnails();
+
+    applyPreviewTransform();
+
+    positionCropBox();
+
+
+    setStatus(
+      "",
+      false
+    );
+
+  }
+);
+
+
+/* =====================================================
+   VIDEO ERROR
+===================================================== */
+
+video.addEventListener(
+  "error",
+  () => {
+
+    if(!sourceFile)
+      return;
+
+    console.error(
+      "Video preview error:",
+      video.error
+    );
+
+    setStatus(
+      "Браузер не смог показать предпросмотр этого видео.",
+      true
+    );
+
+  }
+);
+
+
+/* =====================================================
+   PLAY
+===================================================== */
+
+playBtn.onclick =
+async () => {
+
+  if(!sourceFile)
+    return;
+
+
+  if(video.paused){
+
+    if(
+      video.currentTime <
+        startTime
+      ||
+      video.currentTime >=
+        endTime
+    ){
+
+      video.currentTime =
+        startTime;
+
+    }
+
+
+    try{
+
+      await video.play();
+
+    }catch(error){
+
+      console.error(
+        error
+      );
+
+    }
+
+  }else{
+
+    video.pause();
+
+  }
+};
+
+
+video.addEventListener(
+  "play",
+  () => {
+
+    isPlaying =
+      true;
+
+    updatePlayIcon();
+
+  }
+);
+
+
+video.addEventListener(
+  "pause",
+  () => {
+
+    isPlaying =
+      false;
+
+    updatePlayIcon();
+
+  }
+);
+
+
+video.addEventListener(
+  "timeupdate",
+  () => {
+
+    if(
+      endTime > 0 &&
+      video.currentTime >=
+        endTime
+    ){
+
+      video.pause();
+
+      video.currentTime =
+        startTime;
+
+    }
+
+  }
+);
+
+
+function updatePlayIcon(){
+
+  playIcon.innerHTML =
+    isPlaying
+
+      ?
+        '<path d="M7 5h4v14H7zM13 5h4v14h-4z"/>'
+
+      :
+        '<path d="m8 5 11 7-11 7z"/>';
+}
+
+
+/* =====================================================
+   TRIM TIMELINE
+===================================================== */
+
+function updateTrimUI(){
+
+  if(!duration){
+
+    trimFill.style.left =
+      "0%";
+
+    trimFill.style.width =
+      "100%";
+
+    return;
+  }
+
+
+  const left =
+    startTime /
+    duration;
+
+  const right =
+    endTime /
+    duration;
+
+
+  trimFill.style.left =
+    left * 100 +
+    "%";
+
+
+  trimFill.style.width =
+    (right-left) *
+    100 +
+    "%";
+
+
+  leftHandle.style.left =
+    "calc(" +
+    left * 100 +
+    "% - 6px)";
+
+
+  rightHandle.style.left =
+    "calc(" +
+    right * 100 +
+    "% - 6px)";
+
+
+  startInput.value =
+    formatTime(
+      startTime
+    );
+
+  endInput.value =
+    formatTime(
+      endTime
+    );
+}
+
+
+function setTrim(
+  side,
+  clientX
+){
+
+  if(!duration)
+    return;
+
+
+  const rect =
+    film.getBoundingClientRect();
+
+
+  let percent =
+    (
+      clientX -
+      rect.left
+    ) /
+    rect.width;
+
+
+  percent =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        percent
+      )
+    );
+
+
+  const time =
+    percent *
+    duration;
+
+
+  if(side === "left"){
+
+    startTime =
+      Math.min(
+        time,
+        endTime - 0.05
+      );
+
+  }else{
+
+    endTime =
+      Math.max(
+        time,
+        startTime + 0.05
+      );
+
+  }
+
+
+  updateTrimUI();
+}
+
+
+function startTrim(
+  side,
+  event
+){
+
+  if(isExporting)
+    return;
+
+
+  event.preventDefault();
+
+  event.stopPropagation();
+
+
+  pointerDrag = {
+    type:"trim",
+    side:side
+  };
+
+
+  document.addEventListener(
+    "pointermove",
+    pointerMove
+  );
+
+
+  document.addEventListener(
+    "pointerup",
+    pointerUp,
+    {
+      once:true
+    }
+  );
+}
+
+
+leftHandle.addEventListener(
+  "pointerdown",
+  event =>
+    startTrim(
+      "left",
+      event
+    )
+);
+
+
+rightHandle.addEventListener(
+  "pointerdown",
+  event =>
+    startTrim(
+      "right",
+      event
+    )
+);
+
+
+film.addEventListener(
+  "pointerdown",
+  event => {
+
+    if(!duration)
+      return;
+
+    if(
+      event.target.classList.contains(
+        "trim-handle"
+      )
+    )
+      return;
+
+
+    const rect =
+      film.getBoundingClientRect();
+
+
+    const percent =
+      (
+        event.clientX -
+        rect.left
+      ) /
+      rect.width;
+
+
+    video.currentTime =
+      Math.max(
+        startTime,
+        Math.min(
+          endTime,
+          percent *
+          duration
+        )
+      );
+
+  }
+);
+
+
+/* =====================================================
+   TIME INPUTS
+===================================================== */
+
+startInput.addEventListener(
+  "change",
+  () => {
+
+    startTime =
+      Math.max(
+        0,
+        Math.min(
+          parseTime(
+            startInput.value
+          ),
+          endTime - 0.05
+        )
+      );
+
+
+    updateTrimUI();
+
+  }
+);
+
+
+endInput.addEventListener(
+  "change",
+  () => {
+
+    endTime =
+      Math.max(
+        startTime + 0.05,
+        Math.min(
+          parseTime(
+            endInput.value
+          ),
+          duration
+        )
+      );
+
+
+    updateTrimUI();
+
+  }
+);
+
+
+/* =====================================================
+   POINTER
+===================================================== */
+
+function pointerMove(event){
+
+  if(!pointerDrag)
+    return;
+
+
+  if(
+    pointerDrag.type ===
+    "trim"
+  ){
+
+    setTrim(
+      pointerDrag.side,
+      event.clientX
+    );
+
+    return;
+  }
+
+
+  if(
+    pointerDrag.type !==
+    "crop"
+  )
+    return;
+
+
+  updateCropFromPointer(
+    event
+  );
+}
+
+
+function pointerUp(){
+
+  pointerDrag =
+    null;
+
+
+  document.removeEventListener(
+    "pointermove",
+    pointerMove
+  );
+}
+
+
+/* =====================================================
+   CROP
+===================================================== */
+
+function updateCropUI(){
+
+  $("xRange").value =
+    crop.x;
+
+  $("yRange").value =
+    crop.y;
+
+  $("wRange").value =
+    crop.w;
+
+  $("hRange").value =
+    crop.h;
+
+
+  $("xVal").textContent =
+    Math.round(crop.x) +
+    "%";
+
+  $("yVal").textContent =
+    Math.round(crop.y) +
+    "%";
+
+  $("wVal").textContent =
+    Math.round(crop.w) +
+    "%";
+
+  $("hVal").textContent =
+    Math.round(crop.h) +
+    "%";
+
+
+  positionCropBox();
+}
+
+
+function setCropValue(
+  property,
+  value
+){
+
+  crop[property] =
+    Number(value);
+
+
+  if(property === "x"){
+
+    crop.x =
+      Math.min(
+        crop.x,
+        100 - crop.w
+      );
+
+  }
+
+
+  if(property === "y"){
+
+    crop.y =
+      Math.min(
+        crop.y,
+        100 - crop.h
+      );
+
+  }
+
+
+  if(property === "w"){
+
+    crop.w =
+      Math.min(
+        crop.w,
+        100 - crop.x
+      );
+
+  }
+
+
+  if(property === "h"){
+
+    crop.h =
+      Math.min(
+        crop.h,
+        100 - crop.y
+      );
+
+  }
+
+
+  updateCropUI();
+}
+
+
+["x","y","w","h"]
+.forEach(
+  property => {
+
+    $(property + "Range")
+      .addEventListener(
+        "input",
+        event => {
+
+          setCropValue(
+            property,
+            event.target.value
+          );
+
+        }
+      );
+
+  }
+);
+
+
+cropBtn.onclick =
+() => {
+
+  if(!sourceFile)
+    return;
+
+
+  cropMode =
+    !cropMode;
+
+
+  cropBtn.classList.toggle(
+    "active",
+    cropMode
+  );
+
+
+  cropPanel.classList.toggle(
+    "show",
+    cropMode
+  );
+
+
+  cropBox.style.display =
+    cropMode
+      ? "block"
+      : "none";
+
+
+  if(cropMode)
+    positionCropBox();
+};
+
+
+/* =====================================================
+   CROP POSITION
+===================================================== */
+
+function getVideoRect(){
+
+  const vr =
+    video.getBoundingClientRect();
+
+  const sr =
+    stage.getBoundingClientRect();
+
+
+  return {
+    left:
+      vr.left - sr.left,
+
+    top:
+      vr.top - sr.top,
+
+    width:
+      vr.width,
+
+    height:
+      vr.height
+  };
+}
+
+
+function positionCropBox(){
+
+  if(
+    !cropMode ||
+    !video.videoWidth
+  )
+    return;
+
+
+  const r =
+    getVideoRect();
+
+
+  cropBox.style.left =
+    r.left +
+    r.width *
+    crop.x /
+    100 +
+    "px";
+
+
+  cropBox.style.top =
+    r.top +
+    r.height *
+    crop.y /
+    100 +
+    "px";
+
+
+  cropBox.style.width =
+    r.width *
+    crop.w /
+    100 +
+    "px";
+
+
+  cropBox.style.height =
+    r.height *
+    crop.h /
+    100 +
+    "px";
+}
+
+
+window.addEventListener(
+  "resize",
+  positionCropBox
+);
+
+
+/* =====================================================
+   CROP HANDLES
+===================================================== */
+
+document
+  .querySelectorAll(
+    ".handle"
+  )
+  .forEach(
+    handle => {
+
+      handle.addEventListener(
+        "pointerdown",
+        event => {
+
+          if(isExporting)
+            return;
+
+
+          event.preventDefault();
+
+          event.stopPropagation();
+
+
+          pointerDrag = {
+            type:"crop",
+            handle:
+              handle.dataset.h
+          };
+
+
+          document.addEventListener(
+            "pointermove",
+            pointerMove
+          );
+
+
+          document.addEventListener(
+            "pointerup",
+            pointerUp,
+            {
+              once:true
+            }
+          );
+
+        }
+      );
+
+    }
+  );
+
+
+function updateCropFromPointer(
+  event
+){
+
+  const rect =
+    video.getBoundingClientRect();
+
+
+  if(
+    !rect.width ||
+    !rect.height
+  )
+    return;
+
+
+  let x =
+    (
+      event.clientX -
+      rect.left
+    ) /
+    rect.width *
+    100;
+
+
+  let y =
+    (
+      event.clientY -
+      rect.top
+    ) /
+    rect.height *
+    100;
+
+
+  x =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        x
+      )
+    );
+
+
+  y =
+    Math.max(
+      0,
+      Math.min(
+        100,
+        y
+      )
+    );
+
+
+  const handle =
+    pointerDrag.handle;
+
+  const minimum =
+    5;
+
+
+  if(handle.includes("l")){
+
+    const right =
+      crop.x +
+      crop.w;
+
+
+    crop.x =
+      Math.min(
+        x,
+        right - minimum
+      );
+
+
+    crop.w =
+      right -
+      crop.x;
+  }
+
+
+  if(handle.includes("r")){
+
+    crop.w =
+      Math.max(
+        minimum,
+        Math.min(
+          100 - crop.x,
+          x - crop.x
+        )
+      );
+  }
+
+
+  if(handle.includes("t")){
+
+    const bottom =
+      crop.y +
+      crop.h;
+
+
+    crop.y =
+      Math.min(
+        y,
+        bottom - minimum
+      );
+
+
+    crop.h =
+      bottom -
+      crop.y;
+  }
+
+
+  if(handle.includes("b")){
+
+    crop.h =
+      Math.max(
+        minimum,
+        Math.min(
+          100 - crop.y,
+          y - crop.y
+        )
+      );
+  }
+
+
+  updateCropUI();
+}
+
+
+/* =====================================================
+   ROTATE / MIRROR / MUTE
+===================================================== */
+
+rotateBtn.onclick =
+() => {
+
+  if(!sourceFile)
+    return;
+
+
+  rotate =
+    (rotate + 90) %
+    360;
+
+
+  applyPreviewTransform();
+
+  positionCropBox();
+};
+
+
+mirrorBtn.onclick =
+() => {
+
+  if(!sourceFile)
+    return;
+
+
+  mirror =
+    !mirror;
+
+
+  mirrorBtn.classList.toggle(
+    "active",
+    mirror
+  );
+
+
+  applyPreviewTransform();
+};
+
+
+muteBtn.onclick =
+() => {
+
+  if(!sourceFile)
+    return;
+
+
+  muted =
+    !muted;
+
+
+  muteBtn.classList.toggle(
+    "active",
+    muted
+  );
+
+
+  video.muted =
+    muted;
+};
+
+
+function applyPreviewTransform(){
+
+  let transform = "";
+
+
+  if(rotate){
+
+    transform +=
+      "rotate(" +
+      rotate +
+      "deg) ";
+
+  }
+
+
+  transform +=
+    "scaleX(" +
+    (
+      mirror
+        ? -1
+        : 1
+    ) +
+    ")";
+
+
+  video.style.transform =
+    transform;
+
+
+  video.muted =
+    muted;
+}
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+resetBtn.onclick =
+() => {
+
+  if(isExporting)
+    return;
+
+
+  revokeURL(
+    sourceURL
+  );
+
+  revokeURL(
+    resultURL
+  );
+
+
+  sourceFile =
+    null;
+
+  sourceURL =
+    null;
+
+  resultURL =
+    null;
+
+  resultBlob =
+    null;
+
+  duration =
+    0;
+
+  startTime =
+    0;
+
+  endTime =
+    0;
+
+  rotate =
+    0;
+
+  mirror =
+    false;
+
+  muted =
+    false;
+
+
+  crop.x =
+    0;
+
+  crop.y =
+    0;
+
+  crop.w =
+    100;
+
+  crop.h =
+    100;
+
+
+  cropMode =
+    false;
+
+
+  video.pause();
+
+  video.removeAttribute(
+    "src"
+  );
+
+  video.load();
+
+
+  empty.style.display =
+    "flex";
+
+
+  thumbs.innerHTML =
+    "";
+
+
+  fileInfo.textContent =
+    "";
+
+
+  saveBtn.disabled =
+    true;
+
+  playBtn.disabled =
+    true;
+
+
+  cropBtn.classList.remove(
+    "active"
+  );
+
+  mirrorBtn.classList.remove(
+    "active"
+  );
+
+  muteBtn.classList.remove(
+    "active"
+  );
+
+
+  cropPanel.classList.remove(
+    "show"
+  );
+
+
+  cropBox.style.display =
+    "none";
+
+
+  downloadPanel.classList.remove(
+    "show"
+  );
+
+
+  setProgress(0);
+
+  setStatus(
+    "",
+    false
+  );
+
+
+  updateScale();
+
+  updateTrimUI();
+
+  updateCropUI();
+
+  applyPreviewTransform();
+
+  updatePlayIcon();
+
+};
+
+
+/* =====================================================
+   SCALE
+===================================================== */
+
+function updateScale(){
+
+  $("scaleStart").textContent =
+    formatTime(0);
+
+  $("scaleMid").textContent =
+    formatTime(
+      duration / 2
+    );
+
+  $("scaleEnd").textContent =
+    formatTime(
+      duration
+    );
+}
+
+
+/* =====================================================
+   THUMBNAILS
+===================================================== */
+
+function createThumbnails(){
+
+  thumbs.innerHTML =
+    "";
+
+
+  if(
+    !sourceURL ||
+    !duration
+  )
+    return;
+
+
+  const count =
+    Math.min(
+      28,
+      Math.max(
+        8,
+        Math.round(
+          duration / 4
+        )
+      )
+    );
+
+
+  const thumbVideo =
+    document.createElement(
+      "video"
+    );
+
+
+  thumbVideo.muted =
+    true;
+
+  thumbVideo.preload =
+    "metadata";
+
+  thumbVideo.src =
+    sourceURL;
+
+
+  thumbVideo.addEventListener(
+    "loadedmetadata",
+    () => {
+
+      const canvas =
+        document.createElement(
+          "canvas"
+        );
+
+
+      canvas.width =
+        160;
+
+      canvas.height =
+        90;
+
+
+      const ctx =
+        canvas.getContext(
+          "2d"
+        );
+
+
+      let index =
+        0;
+
+
+      function drawNext(){
+
+        if(index >= count){
+
+          try{
+            thumbVideo.src =
+              "";
+          }catch(e){}
+
+          return;
+        }
+
+
+        const time =
+          duration *
+          (
+            index /
+            Math.max(
+              1,
+              count - 1
+            )
+          );
+
+
+        thumbVideo.currentTime =
+          Math.min(
+            duration - 0.01,
+            time
+          );
+
+
+        thumbVideo.addEventListener(
+          "seeked",
+          function handler(){
+
+            thumbVideo.removeEventListener(
+              "seeked",
+              handler
+            );
+
+
+            try{
+
+              const ratio =
+                thumbVideo.videoWidth /
+                Math.max(
+                  1,
+                  thumbVideo.videoHeight
+                );
+
+
+              canvas.height =
+                Math.max(
+                  60,
+                  Math.round(
+                    canvas.width /
+                    ratio
+                  )
+                );
+
+
+              ctx.drawImage(
+                thumbVideo,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+              );
+
+
+              const image =
+                document.createElement(
+                  "img"
+                );
+
+
+              image.className =
+                "thumb";
+
+
+              image.src =
+                canvas.toDataURL(
+                  "image/jpeg",
+                  .55
+                );
+
+
+              thumbs.appendChild(
+                image
+              );
+
+            }catch(error){
+
+              console.warn(
+                "Thumbnail error",
+                error
+              );
+
+            }
+
+
+            index++;
+
+            drawNext();
+
+          }
+        );
+
+      }
+
+
+      drawNext();
+
+    }
+  );
+}
+
+
+/* =====================================================
+   BUILD FFMPEG FILTER
+===================================================== */
+
+function buildVideoFilter(){
+
+  const filters = [];
+
+
+  /*
+   * Crop
+   */
+
+  if(
+    crop.x > 0.01 ||
+    crop.y > 0.01 ||
+    crop.w < 99.99 ||
+    crop.h < 99.99
+  ){
+
+    const w =
+      "trunc(iw*" +
+      (
+        crop.w / 100
+      ).toFixed(6) +
+      "/2)*2";
+
+
+    const h =
+      "trunc(ih*" +
+      (
+        crop.h / 100
+      ).toFixed(6) +
+      "/2)*2";
+
+
+    const x =
+      "trunc(iw*" +
+      (
+        crop.x / 100
+      ).toFixed(6) +
+      "/2)*2";
+
+
+    const y =
+      "trunc(ih*" +
+      (
+        crop.y / 100
+      ).toFixed(6) +
+      "/2)*2";
+
+
+    filters.push(
+      "crop=" +
+      w +
+      ":" +
+      h +
+      ":" +
+      x +
+      ":" +
+      y
+    );
+
+  }
+
+
+  /*
+   * Mirror
+   */
+
+  if(mirror){
+
+    filters.push(
+      "hflip"
+    );
+
+  }
+
+
+  /*
+   * Rotation
+   */
+
+  if(rotate === 90){
+
+    filters.push(
+      "transpose=1"
+    );
+
+  }
+
+
+  if(rotate === 180){
+
+    filters.push(
+      "hflip",
+      "vflip"
+    );
+
+  }
+
+
+  if(rotate === 270){
+
+    filters.push(
+      "transpose=2"
+    );
+
+  }
+
+
+  return filters.length
+    ? filters.join(",")
+    : "null";
+}
+
+
+/* =====================================================
+   CLEAN FFMPEG FILES
+===================================================== */
+
+async function safeDelete(
+  filename
+){
+
+  if(!ffmpeg)
+    return;
+
+
+  try{
+
+    await ffmpeg.deleteFile(
+      filename
+    );
+
+  }catch(e){}
+
+}
+
+
+/* =====================================================
+   EXPORT
+===================================================== */
+
+async function exportVideo(){
+
+  if(!sourceFile){
+
+    alert(
+      "Сначала загрузите видео."
+    );
+
+    return;
+  }
+
+
+  if(isExporting)
+    return;
+
+
+  isExporting =
+    true;
+
+
+  saveBtn.disabled =
+    true;
+
+  chooseBtn.disabled =
+    true;
+
+  openBtn.disabled =
+    true;
+
+  playBtn.disabled =
+    true;
+
+
+  downloadPanel.classList.remove(
+    "show"
+  );
+
+
+  setProgress(0);
+
+
+  try{
+
+    /*
+     * 1. Load FFmpeg
+     */
+
+    const loaded =
+      await loadFFmpeg();
+
+
+    if(!loaded){
+
+      throw new Error(
+        "FFmpeg не загружен."
+      );
+
+    }
+
+
+    /*
+     * 2. Prepare filenames
+     */
+
+    const inputName =
+      "aura_input.mp4";
+
+    const outputName =
+      "aura_output.mp4";
+
+
+    /*
+     * 3. Convert File to Uint8Array
+     *
+     * No @ffmpeg/util dependency required.
+     */
+
+    setStatus(
+      "Подготовка видео…",
+      true
+    );
+
+
+    const arrayBuffer =
+      await sourceFile.arrayBuffer();
+
+
+    const inputData =
+      new Uint8Array(
+        arrayBuffer
+      );
+
+
+    /*
+     * 4. Write to FFmpeg FS
+     */
+
+    await safeDelete(
+      inputName
+    );
+
+    await safeDelete(
+      outputName
+    );
+
+
+    await ffmpeg.writeFile(
+      inputName,
+      inputData
+    );
+
+
+    /*
+     * 5. Trim
+     */
+
+    const trimStart =
+      Math.max(
+        0,
+        Number(startTime) || 0
+      );
+
+
+    const trimEnd =
+      Math.min(
+        duration,
+        Math.max(
+          trimStart + 0.05,
+          Number(endTime) ||
+            duration
+        )
+      );
+
+
+    const trimDuration =
+      Math.max(
+        0.05,
+        trimEnd -
+        trimStart
+      );
+
+
+    /*
+     * 6. Filter
+     */
+
+    const filter =
+      buildVideoFilter();
+
+
+    /*
+     * 7. FFmpeg command
+     *
+     * Everything is re-encoded to
+     * a widely compatible MP4:
+     *
+     * H.264 + AAC
+     */
+
+    const args = [
+
+      "-ss",
+      trimStart.toFixed(3),
+
+      "-i",
+      inputName,
+
+      "-t",
+      trimDuration.toFixed(3),
+
+      "-vf",
+      filter,
+
+      "-c:v",
+      "libx264",
+
+      "-preset",
+      "veryfast",
+
+      "-crf",
+      "23",
+
+      "-pix_fmt",
+      "yuv420p",
+
+      "-movflags",
+      "+faststart"
+
+    ];
+
+
+    /*
+     * Audio
+     */
+
+    if(muted){
+
+      args.push(
+        "-an"
+      );
+
+    }else{
+
+      args.push(
+        "-c:a",
+        "aac",
+        "-b:a",
+        "128k",
+        "-ar",
+        "48000"
+      );
+
+    }
+
+
+    args.push(
+      "-y",
+      outputName
+    );
+
+
+    console.log(
+      "AURA FFmpeg args:",
+      args
+    );
+
+
+    /*
+     * 8. Run
+     */
+
+    setStatus(
+      "Обработка видео…",
+      true
+    );
+
+
+    setProgress(2);
+
+
+    await ffmpeg.exec(
+      args
+    );
+
+
+    /*
+     * 9. Read result
+     */
+
+    setProgress(96);
+
+
+    const outputData =
+      await ffmpeg.readFile(
+        outputName
+      );
+
+
+    if(
+      !outputData ||
+      !outputData.length
+    ){
+
+      throw new Error(
+        "FFmpeg завершился, но выходной файл пустой."
+      );
+
+    }
+
+
+    /*
+     * 10. Create Blob
+     */
+
+    const outputBytes =
+      outputData instanceof Uint8Array
+        ? outputData
+        : new Uint8Array(outputData);
+
+    resultBlob =
+      new Blob(
+        [outputBytes],
+        {
+          type:
+            "video/mp4"
+        }
+      );
+
+
+    if(
+      !resultBlob.size
+    ){
+
+      throw new Error(
+        "Получен пустой MP4."
+      );
+
+    }
+
+
+    /*
+     * 11. Create result URL
+     */
+
+    revokeURL(
+      resultURL
+    );
+
+
+    resultURL =
+      URL.createObjectURL(
+        resultBlob
+      );
+
+
+    /*
+     * 12. Show result
+     */
+
+    video.pause();
+
+    video.src =
+      resultURL;
+
+    video.load();
+
+
+    setProgress(100);
+
+
+    setStatus(
+      "Видео готово",
+      true
+    );
+
+
+    /*
+     * Show download window.
+     *
+     * We deliberately don't force
+     * an automatic download here.
+     *
+     * The user click on "Скачать MP4"
+     * gives the browser the best chance
+     * to allow the download.
+     */
+
+    downloadPanel.classList.add(
+      "show"
+    );
+
+
+    /*
+     * Cleanup FFmpeg virtual FS.
+     */
+
+    await safeDelete(
+      inputName
+    );
+
+    await safeDelete(
+      outputName
+    );
+
+
+  }catch(error){
+
+    console.error(
+      "AURA EXPORT ERROR:",
+      error
+    );
+
+
+    setProgress(0);
+
+
+    setStatus(
+      "Ошибка обработки видео",
+      true
+    );
+
+
+    alert(
+      "Не удалось обработать видео.\n\n" +
+      error.message +
+      "\n\n" +
+      "Откройте F12 → Console и пришлите ошибку, если она повторится."
+    );
+
+  }finally{
+
+    isExporting =
+      false;
+
+
+    saveBtn.disabled =
+      !sourceFile;
+
+    chooseBtn.disabled =
+      false;
+
+    openBtn.disabled =
+      false;
+
+    playBtn.disabled =
+      !sourceFile;
+
+  }
+}
+
+
+/* =====================================================
+   DOWNLOAD METHOD 1
+   File System Access API
+===================================================== */
+
+async function downloadWithSavePicker(){
+
+  if(
+    !resultBlob
+  ){
+
+    throw new Error(
+      "Нет готового файла."
+    );
+
+  }
+
+
+  if(
+    typeof window.showSaveFilePicker !==
+      "function"
+  ){
+
+    throw new Error(
+      "Save Picker недоступен."
+    );
+
+  }
+
+
+  const filename =
+    fileBaseName(
+      sourceFile &&
+      sourceFile.name
+    ) +
+    "_edited.mp4";
+
+
+  const handle =
+    await window.showSaveFilePicker({
+
+      suggestedName:
+        filename,
+
+      types:[
+        {
+          description:
+            "MP4 video",
+
+          accept:{
+            "video/mp4":[
+              ".mp4"
+            ]
+          }
+        }
+      ]
+
+    });
+
+
+  const writable =
+    await handle.createWritable();
+
+
+  await writable.write(
+    resultBlob
+  );
+
+
+  await writable.close();
+
+
+  return true;
+}
+
+
+/* =====================================================
+   DOWNLOAD METHOD 2
+   Anchor download
+===================================================== */
+
+function downloadWithAnchor(){
+
+  if(
+    !resultURL ||
+    !resultBlob
+  ){
+
+    throw new Error(
+      "Нет готового файла."
+    );
+
+  }
+
+
+  const filename =
+    fileBaseName(
+      sourceFile &&
+      sourceFile.name
+    ) +
+    "_edited.mp4";
+
+
+  const anchor =
+    document.createElement(
+      "a"
+    );
+
+
+  anchor.href =
+    resultURL;
+
+  anchor.download =
+    filename;
+
+  anchor.rel =
+    "noopener";
+
+
+  /*
+   * Add to DOM before click.
+   */
+
+  anchor.style.display =
+    "none";
+
+
+  document.body.appendChild(
+    anchor
+  );
+
+
+  anchor.click();
+
+
+  setTimeout(
+    () => {
+
+      try{
+        anchor.remove();
+      }catch(e){}
+
+    },
+    1000
+  );
+
+
+  return true;
+}
+
+
+/* =====================================================
+   DOWNLOAD METHOD 3
+   OPEN RESULT
+===================================================== */
+
+function openResult(){
+
+  if(
+    !resultURL ||
+    !resultBlob
+  ){
+
+    alert(
+      "Готового видео пока нет."
+    );
+
+    return;
+  }
+
+
+  /*
+   * This is the most reliable fallback
+   * when Wix/browser blocks download.
+   */
+
+  const newWindow =
+    window.open(
+      resultURL,
+      "_blank"
+    );
+
+
+  if(!newWindow){
+
+    alert(
+      "Браузер заблокировал новое окно.\n\n" +
+      "Разрешите всплывающие окна для сайта Wix."
+    );
+
+    return;
+  }
+
+
+  try{
+
+    newWindow.focus();
+
+  }catch(e){}
+}
+
+
+/* =====================================================
+   SMART DOWNLOAD
+===================================================== */
+
+async function smartDownload(){
+
+  if(
+    !resultBlob ||
+    !resultURL
+  ){
+
+    alert(
+      "Сначала дождитесь завершения обработки."
+    );
+
+    return;
+  }
+
+
+  /*
+   * METHOD 1
+   *
+   * Native Save Picker.
+   */
+
+  try{
+
+    await downloadWithSavePicker();
+
+    setStatus(
+      "Файл сохранён",
+      true
+    );
+
+    return;
+
+  }catch(error){
+
+    console.log(
+      "AURA download method 1 unavailable:",
+      error
+    );
+
+  }
+
+
+  /*
+   * METHOD 2
+   *
+   * Normal browser download.
+   */
+
+  try{
+
+    downloadWithAnchor();
+
+
+    setStatus(
+      "Скачивание запущено",
+      true
+    );
+
+
+    /*
+     * We cannot reliably know whether
+     * Chrome actually accepted a sandboxed
+     * iframe download.
+     *
+     * Therefore keep fallback visible.
+     */
+
+    setTimeout(
+      () => {
+
+        setStatus(
+          "Если загрузка не началась — нажмите «Открыть видео»",
+          true
+        );
+
+      },
+      1200
+    );
+
+
+    return;
+
+  }catch(error){
+
+    console.log(
+      "AURA download method 2 failed:",
+      error
+    );
+
+  }
+
+
+  /*
+   * METHOD 3
+   */
+
+  openResult();
+}
+
+
+/* =====================================================
+   DOWNLOAD BUTTONS
+===================================================== */
+
+downloadBtn.onclick =
+async () => {
+
+  await smartDownload();
+
+};
+
+
+openResultBtn.onclick =
+() => {
+
+  openResult();
+
+};
+
+
+closeDownloadBtn.onclick =
+() => {
+
+  downloadPanel.classList.remove(
+    "show"
+  );
+
+  setStatus(
+    "",
+    false
+  );
+
+};
+
+
+/* =====================================================
+   SAVE BUTTON
+===================================================== */
+
+saveBtn.onclick =
+() => {
+
+  exportVideo();
+
+};
+
+
+/* =====================================================
+   INITIAL STATE
+===================================================== */
+
+saveBtn.disabled =
+  true;
+
+playBtn.disabled =
+  true;
+
+updateScale();
+
+updateTrimUI();
+
+updateCropUI();
+
+updatePlayIcon();
+
+
+/* =====================================================
+   DEBUG INFO
+===================================================== */
+
+console.log(
+  "AURA Video Editor initialized."
+);
+
+console.log(
+  "FFmpeg version:",
+  FFMPEG_VERSION
+);
+
+console.log(
+  "Single-thread core CDNs:",
+  CORE_BASES
+);
+
+console.log(
+  "SharedArrayBuffer required:",
+  false
+);
+
+</script>
+
+</body>
+</html>
