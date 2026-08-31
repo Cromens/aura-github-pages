@@ -8,13 +8,15 @@
 
 <style>
 :root{
-  --bg:#10131a;
+  --bg:#0b0d12;
   --panel:rgba(40,40,40,.15);
+  --panel-strong:rgba(40,40,40,.23);
   --border:rgba(110,110,110,.15);
+  --border-strong:rgba(255,255,255,.12);
   --button:#282828;
   --buttonText:#6E6E6E;
   --primary:#053a99;
-  --accent:#21c7ff;
+  --accent:#1677ff;
   --muted:#778398;
   --white:#fff;
 }
@@ -32,7 +34,9 @@ body{
 }
 
 body{
-  background:var(--bg);
+  background:
+    radial-gradient(circle at 50% -20%, rgba(40,72,130,.18), transparent 48%),
+    linear-gradient(135deg,#090b10 0%,#0f1219 52%,#080a0f 100%);
   color:var(--white);
   font-family:
     Inter,
@@ -42,6 +46,7 @@ body{
     "Segoe UI",
     sans-serif;
   font-size:12px;
+  -webkit-font-smoothing:antialiased;
 }
 
 button,
@@ -72,6 +77,43 @@ button{
   border:1px solid var(--border);
   border-radius:15px;
   min-width:0;
+  backdrop-filter:blur(15px) saturate(125%);
+  -webkit-backdrop-filter:blur(15px) saturate(125%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 14px 40px rgba(0,0,0,.18);
+}
+
+/* =====================================================
+   AURA BRAND
+===================================================== */
+
+.aura-brand{
+  height:32px;
+  min-width:78px;
+  padding:0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  color:#fff;
+  text-decoration:none;
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:.16em;
+  background:rgba(40,40,40,.24);
+  border:1px solid rgba(110,110,110,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
+  transition:.18s ease;
+}
+
+.aura-brand:hover{
+  color:#fff;
+  background:rgba(40,40,40,.38);
+  border-color:rgba(255,255,255,.18);
+  transform:translateY(-1px);
 }
 
 /* =====================================================
@@ -93,7 +135,7 @@ button{
   min-width:30px;
   padding:0 10px;
   border-radius:9px;
-  background:var(--button);
+  background:rgba(40,40,40,.22);
   color:var(--buttonText);
   display:flex;
   align-items:center;
@@ -103,6 +145,10 @@ button{
   white-space:nowrap;
   font-size:11px;
   font-weight:650;
+  border:1px solid rgba(110,110,110,.15);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
   transition:.15s ease;
 }
 
@@ -224,10 +270,14 @@ video{
 .crop-box{
   position:absolute;
   display:none;
-  border:1px solid var(--accent);
-  box-shadow:0 0 0 9999px rgba(0,0,0,.32);
+  border:2px solid rgba(255,255,255,.95);
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,.48),
+    0 0 20px rgba(22,119,255,.28);
   z-index:20;
   touch-action:none;
+  cursor:move;
+  user-select:none;
 }
 
 .crop-box .lineV,
@@ -267,35 +317,48 @@ video{
 
 .handle{
   position:absolute;
-  width:11px;
-  height:11px;
-  background:#fff;
-  border-radius:3px;
-  box-shadow:0 0 0 1px rgba(0,0,0,.4);
+  width:22px;
+  height:22px;
+  background:rgba(255,255,255,.98);
+  border:2px solid #1677ff;
+  border-radius:6px;
+  box-shadow:
+    0 2px 10px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,255,255,.28);
   z-index:30;
+  touch-action:none;
 }
 
+.handle::after{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border-radius:3px;
+  background:#1677ff;
+}
+
+
 .handle.tl{
-  left:-6px;
-  top:-6px;
+  left:-11px;
+  top:-11px;
   cursor:nwse-resize;
 }
 
 .handle.tr{
-  right:-6px;
-  top:-6px;
+  right:-11px;
+  top:-11px;
   cursor:nesw-resize;
 }
 
 .handle.bl{
-  left:-6px;
-  bottom:-6px;
+  left:-11px;
+  bottom:-11px;
   cursor:nesw-resize;
 }
 
 .handle.br{
-  right:-6px;
-  bottom:-6px;
+  right:-11px;
+  bottom:-11px;
   cursor:nwse-resize;
 }
 
@@ -371,8 +434,9 @@ video{
   justify-content:center;
   flex-direction:column;
   gap:10px;
-  background:rgba(5,8,13,.72);
-  backdrop-filter:blur(5px);
+  background:rgba(5,8,13,.58);
+  border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(15px) saturate(130%);
   z-index:150;
 }
 
@@ -413,14 +477,6 @@ video{
 .download-main:hover,
 .download-open:hover{
   filter:brightness(1.12);
-}
-
-.download-close{
-  background:transparent;
-  color:#7f8ba0;
-  cursor:pointer;
-  padding:5px 10px;
-  font-size:10px;
 }
 
 /* =====================================================
@@ -493,7 +549,9 @@ video{
   display:flex;
   flex-direction:column;
   gap:5px;
-  background:#070a10;
+  background:rgba(7,10,16,.48);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
 }
 
 .film{
@@ -524,18 +582,19 @@ video{
   position:absolute;
   top:0;
   bottom:0;
-  background:rgba(33,199,255,.11);
-  border-left:3px solid var(--accent);
-  border-right:3px solid var(--accent);
+  background:rgba(22,119,255,.13);
+  border-left:2px solid rgba(22,119,255,.75);
+  border-right:2px solid rgba(22,119,255,.75);
   pointer-events:none;
 }
 
 .trim-handle{
   position:absolute;
-  top:-2px;
-  bottom:-2px;
-  width:12px;
-  border-radius:5px;
+  top:-1px;
+  bottom:-1px;
+  width:20px;
+  transform:translateX(-50%);
+  border-radius:7px;
   background:var(--accent);
   box-shadow:0 0 8px rgba(33,199,255,.35);
   cursor:ew-resize;
@@ -545,12 +604,53 @@ video{
 .trim-handle:after{
   content:"";
   position:absolute;
-  left:4px;
-  top:22%;
-  bottom:22%;
-  width:3px;
-  border-radius:2px;
-  background:rgba(255,255,255,.75);
+  left:50%;
+  top:18%;
+  bottom:18%;
+  width:4px;
+  transform:translateX(-50%);
+  border-radius:3px;
+  background:#fff;
+  box-shadow:0 0 7px rgba(255,255,255,.45);
+}
+
+/* Реальный ползунок текущего кадра видео */
+.playhead{
+  position:absolute;
+  top:-2px;
+  bottom:-2px;
+  width:18px;
+  transform:translateX(-50%);
+  z-index:32;
+  cursor:ew-resize;
+  touch-action:none;
+}
+
+.playhead::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:0;
+  bottom:0;
+  width:2px;
+  transform:translateX(-50%);
+  background:#fff;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.35),
+    0 0 9px rgba(255,255,255,.7);
+}
+
+.playhead::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-1px;
+  width:9px;
+  height:9px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 0 2px #1677ff,0 0 10px rgba(22,119,255,.65);
 }
 
 .time-scale{
@@ -633,8 +733,10 @@ video{
   min-width:125px;
   height:100%;
   border-radius:11px;
-  background:#fff;
-  color:#0a0d13;
+  background:#053A99;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
   font-weight:700;
   cursor:pointer;
 }
@@ -649,6 +751,9 @@ video{
 ===================================================== */
 
 @media(max-width:700px){
+
+  .aura-brand{min-width:64px;padding:0 9px;font-size:12px;}
+  .toolbar .sep{margin:0 1px;}
 
   #app{
     padding:6px;
@@ -690,22 +795,33 @@ video{
   }
 }
 
-/* AURA GLASS SYSTEM */
+/* AURA GLASS SYSTEM — FINAL OVERRIDES */
 .panel{
   background:rgba(40,40,40,.15);
   border:1px solid rgba(110,110,110,.15);
-  backdrop-filter:blur(15px);
-  -webkit-backdrop-filter:blur(15px);
+  backdrop-filter:blur(15px) saturate(125%);
+  -webkit-backdrop-filter:blur(15px) saturate(125%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 14px 40px rgba(0,0,0,.18);
 }
+
 .tool,
 .play,
 .time-inputs{
-  background:#282828;
+  background:rgba(40,40,40,.22);
   color:#6E6E6E;
   border:1px solid rgba(110,110,110,.15);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
 }
+
 .tool svg,
-.play svg{stroke:currentColor;}
+.play svg{
+  stroke:currentColor;
+}
+
 .tool.active,
 #chooseBtn,
 .save,
@@ -713,37 +829,121 @@ video{
   background:#053A99 !important;
   color:#fff !important;
 }
+
 .tool:not(.active):hover,
 .play:hover{
-  background:#303030;
+  background:rgba(48,48,48,.38);
   color:#fff;
 }
+
 .crop-box{
-  border:2px solid #fff;
-  box-shadow:0 0 0 9999px rgba(0,0,0,.42),0 0 18px rgba(255,255,255,.12);
+  border:2px solid rgba(255,255,255,.96);
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,.48),
+    0 0 20px rgba(22,119,255,.28);
   cursor:move;
 }
-.crop-box .lineV,.crop-box .lineH{background:rgba(255,255,255,.28);}
-.handle{
-  width:16px;height:16px;
-  border:2px solid #fff;
-  border-radius:5px;
-  box-shadow:0 2px 8px rgba(0,0,0,.45);
+
+.crop-box .lineV,
+.crop-box .lineH{
+  background:rgba(255,255,255,.28);
 }
-.handle.tl{left:-8px;top:-8px}.handle.tr{right:-8px;top:-8px}
-.handle.bl{left:-8px;bottom:-8px}.handle.br{right:-8px;bottom:-8px}
-.crop-panel{padding:11px 14px;min-height:88px}
-.crop-presets{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+
+.handle{
+  width:22px;
+  height:22px;
+  border:2px solid #1677ff;
+  border-radius:6px;
+  background:rgba(255,255,255,.98);
+  box-shadow:
+    0 2px 10px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,255,255,.28);
+}
+
+.handle::after{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border-radius:3px;
+  background:#1677ff;
+}
+
+.handle.tl{left:-11px;top:-11px}
+.handle.tr{right:-11px;top:-11px}
+.handle.bl{left:-11px;bottom:-11px}
+.handle.br{right:-11px;bottom:-11px}
+
+.trim-handle{
+  width:20px;
+  transform:translateX(-50%);
+  border-radius:7px;
+  background:#1677ff;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.16),
+    0 0 12px rgba(22,119,255,.45);
+}
+
+.trim-handle:after{
+  left:50%;
+  transform:translateX(-50%);
+  width:4px;
+  background:#fff;
+  box-shadow:0 0 7px rgba(255,255,255,.45);
+}
+
+.playhead{
+  z-index:32;
+}
+
+.crop-panel{
+  padding:11px 14px;
+  min-height:88px;
+}
+
+.crop-presets{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
 .crop-preset{
   border:1px solid rgba(110,110,110,.15);
-  background:#282828;color:#6E6E6E;
-  border-radius:9px;padding:8px 11px;cursor:pointer;
-  font-size:10px;font-weight:700;transition:.15s ease;
+  background:rgba(40,40,40,.22);
+  color:#6E6E6E;
+  border-radius:9px;
+  padding:8px 11px;
+  cursor:pointer;
+  font-size:10px;
+  font-weight:700;
+  transition:.15s ease;
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
 }
-.crop-preset:hover,.crop-preset.active{background:#053A99;color:#fff;border-color:rgba(255,255,255,.16)}
-.crop-hint{color:#6E6E6E;font-size:10px;margin-left:auto}
-.download-panel{backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
-.download-close{display:none !important}
+
+.crop-preset:hover,
+.crop-preset.active{
+  background:#053A99;
+  color:#fff;
+  border-color:rgba(255,255,255,.16);
+}
+
+.crop-hint{
+  color:#6E6E6E;
+  font-size:10px;
+  margin-left:auto;
+}
+
+.download-panel{
+  backdrop-filter:blur(15px) saturate(130%);
+  -webkit-backdrop-filter:blur(15px) saturate(130%);
+}
+
+.save{
+  background:#053A99;
+  color:#fff;
+}
+
 </style>
 </head>
 
@@ -756,7 +956,18 @@ video{
   ================================================== -->
 
   <div class="panel toolbar">
-<button class="tool icon" id="cropBtn" title="Кадрирование">
+
+    <a
+      class="aura-brand"
+      href="https://cromens.wixstudio.com/brachka/login"
+      target="_blank"
+      rel="noopener noreferrer"
+      title="Открыть AURA"
+    >AURA</a>
+
+    <div class="sep"></div>
+
+    <button class="tool icon" id="cropBtn" title="Кадрирование">
 
       <svg viewBox="0 0 24 24">
         <path d="M7 3v14a2 2 0 0 0 2 2h14"/>
@@ -942,6 +1153,12 @@ video{
         <div
           class="thumbs"
           id="thumbs"
+        ></div>
+
+        <div
+          class="playhead"
+          id="playhead"
+          title="Текущий кадр"
         ></div>
 
         <div
@@ -1138,6 +1355,9 @@ const thumbs =
 
 const film =
   $("film");
+
+const playhead =
+  $("playhead");
 
 const leftHandle =
   $("leftHandle");
@@ -1604,21 +1824,41 @@ async function loadFFmpeg(){
       "Загрузка ядра FFmpeg…";
 
 
-    const coreURL = "./vendor/ffmpeg-core.js";
-    const wasmURL = "./vendor/ffmpeg-core.wasm";
-
-
     /*
-     * Load SINGLE THREAD core.
+     * FFmpeg 0.12.x resolves classWorkerURL relative to
+     * the FFmpeg library module, NOT relative to index.html.
+     * A relative "./vendor/814.ffmpeg.js" therefore becomes
+     * the broken file:///.../ffmpeg.wasm/... path shown in
+     * the console.
      *
-     * There is NO workerURL here because
-     * we are NOT using core-mt.
+     * Build absolute same-origin URLs from the actual page.
+     * This is the important fix for GitHub Pages/Wix iframe.
      */
+    const assetURL = name =>
+      new URL(
+        "./vendor/" + name,
+        document.baseURI || window.location.href
+      ).href;
+
+    const coreURL =
+      assetURL("ffmpeg-core.js");
+
+    const wasmURL =
+      assetURL("ffmpeg-core.wasm");
+
+    const classWorkerURL =
+      assetURL("814.ffmpeg.js");
+
+    console.log("AURA FFmpeg assets:", {
+      coreURL,
+      wasmURL,
+      classWorkerURL
+    });
 
     await ffmpeg.load({
-      coreURL: coreURL,
-      wasmURL: wasmURL,
-      classWorkerURL: "./vendor/814.ffmpeg.js"
+      coreURL,
+      wasmURL,
+      classWorkerURL
     });
 
 
@@ -1870,6 +2110,7 @@ video.addEventListener(
 
 
     updateTrimUI();
+    updatePlayhead();
 
     updateScale();
 
@@ -1993,6 +2234,8 @@ video.addEventListener(
   "timeupdate",
   () => {
 
+    updatePlayhead();
+
     if(
       endTime > 0 &&
       video.currentTime >=
@@ -2004,9 +2247,21 @@ video.addEventListener(
       video.currentTime =
         startTime;
 
+      updatePlayhead();
+
     }
 
   }
+);
+
+video.addEventListener(
+  "seeking",
+  updatePlayhead
+);
+
+video.addEventListener(
+  "loadeddata",
+  updatePlayhead
 );
 
 
@@ -2062,15 +2317,13 @@ function updateTrimUI(){
 
 
   leftHandle.style.left =
-    "calc(" +
     left * 100 +
-    "% - 6px)";
+    "%";
 
 
   rightHandle.style.left =
-    "calc(" +
     right * 100 +
-    "% - 6px)";
+    "%";
 
 
   startInput.value =
@@ -2082,6 +2335,8 @@ function updateTrimUI(){
     formatTime(
       endTime
     );
+
+  updatePlayhead();
 }
 
 
@@ -2141,6 +2396,15 @@ function setTrim(
 
 
   updateTrimUI();
+
+  /* Сразу показываем кадр на новом положении ручки */
+  video.pause();
+  video.currentTime =
+    side === "left"
+      ? startTime
+      : endTime;
+
+  updatePlayhead();
 }
 
 
@@ -2204,41 +2468,94 @@ film.addEventListener(
   "pointerdown",
   event => {
 
-    if(!duration)
+    if(!duration || isExporting)
       return;
 
     if(
-      event.target.classList.contains(
-        "trim-handle"
-      )
+      event.target.closest(".trim-handle") ||
+      event.target.closest(".playhead")
     )
       return;
 
+    event.preventDefault();
 
-    const rect =
-      film.getBoundingClientRect();
-
-
-    const percent =
-      (
-        event.clientX -
-        rect.left
-      ) /
-      rect.width;
-
-
-    video.currentTime =
-      Math.max(
-        startTime,
-        Math.min(
-          endTime,
-          percent *
-          duration
-        )
-      );
+    seekFromTimeline(event.clientX, false);
 
   }
 );
+
+function seekFromTimeline(clientX, keepTrimBounds){
+  if(!duration) return;
+
+  const rect = film.getBoundingClientRect();
+  if(!rect.width) return;
+
+  let percent =
+    (clientX - rect.left) / rect.width;
+
+  percent =
+    Math.max(0, Math.min(1, percent));
+
+  let time = percent * duration;
+
+  if(keepTrimBounds){
+    time = Math.max(
+      startTime,
+      Math.min(endTime, time)
+    );
+  }
+
+  video.pause();
+  video.currentTime = time;
+  updatePlayhead();
+}
+
+playhead.addEventListener(
+  "pointerdown",
+  event => {
+    if(!duration || isExporting) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    pointerDrag = {
+      type:"playhead"
+    };
+
+    video.pause();
+
+    document.addEventListener(
+      "pointermove",
+      pointerMove
+    );
+
+    document.addEventListener(
+      "pointerup",
+      pointerUp,
+      { once:true }
+    );
+  }
+);
+
+function updatePlayhead(){
+  if(!playhead) return;
+
+  if(!duration){
+    playhead.style.left = "0%";
+    return;
+  }
+
+  const percent =
+    Math.max(0, Math.min(100,
+      (video.currentTime / duration) * 100
+    ));
+
+  playhead.style.left =
+    percent + "%";
+
+  playhead.title =
+    "Текущий кадр · " +
+    formatTime(video.currentTime);
+}
 
 
 /* =====================================================
@@ -2262,6 +2579,9 @@ startInput.addEventListener(
 
 
     updateTrimUI();
+    video.pause();
+    video.currentTime = startTime;
+    updatePlayhead();
 
   }
 );
@@ -2284,6 +2604,9 @@ endInput.addEventListener(
 
 
     updateTrimUI();
+    video.pause();
+    video.currentTime = endTime;
+    updatePlayhead();
 
   }
 );
@@ -2312,6 +2635,27 @@ function pointerMove(event){
     return;
   }
 
+  if(
+    pointerDrag.type ===
+    "playhead"
+  ){
+
+    seekFromTimeline(
+      event.clientX,
+      false
+    );
+
+    return;
+  }
+
+  if(
+    pointerDrag.type ===
+    "cropMove"
+  ){
+
+    updateCropMove(event);
+    return;
+  }
 
   if(
     pointerDrag.type !==
