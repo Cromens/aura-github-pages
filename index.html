@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -690,6 +691,7 @@ video{
   }
 }
 </style>
+
 </head>
 
 <body>
@@ -702,92 +704,91 @@ video{
 
   <div class="panel toolbar">
 
-    <button class="tool active" id="openBtn">
+<button class="tool active" id="openBtn">
 
-      <svg viewBox="0 0 24 24">
-        <path d="M4 17.5V6.8A2.8 2.8 0 0 1 6.8 4h5.6"/>
-        <path d="M8 16l8-8 4 4-8 8H8z"/>
-        <path d="M14 4h6v6"/>
-      </svg>
+  <svg viewBox="0 0 24 24">
+    <path d="M4 17.5V6.8A2.8 2.8 0 0 1 6.8 4h5.6"/>
+    <path d="M8 16l8-8 4 4-8 8H8z"/>
+    <path d="M14 4h6v6"/>
+  </svg>
 
-      <span>Обрезка</span>
+  <span>Обрезка</span>
 
-    </button>
+</button>
 
-    <button class="tool icon" id="cropBtn" title="Кадрирование">
+<button class="tool icon" id="cropBtn" title="Кадрирование">
 
-      <svg viewBox="0 0 24 24">
-        <path d="M7 3v14a2 2 0 0 0 2 2h14"/>
-        <path d="M17 21V7a2 2 0 0 0-2-2H1"/>
-      </svg>
+  <svg viewBox="0 0 24 24">
+    <path d="M7 3v14a2 2 0 0 0 2 2h14"/>
+    <path d="M17 21V7a2 2 0 0 0-2-2H1"/>
+  </svg>
 
-    </button>
+</button>
 
-    <button class="tool icon" id="rotateBtn" title="Повернуть">
+<button class="tool icon" id="rotateBtn" title="Повернуть">
 
-      <svg viewBox="0 0 24 24">
-        <path d="M4 12a8 8 0 1 0 2.3-5.7"/>
-        <path d="M4 4v6h6"/>
-      </svg>
+  <svg viewBox="0 0 24 24">
+    <path d="M4 12a8 8 0 1 0 2.3-5.7"/>
+    <path d="M4 4v6h6"/>
+  </svg>
 
-    </button>
+</button>
 
-    <button class="tool icon" id="mirrorBtn" title="Отразить">
+<button class="tool icon" id="mirrorBtn" title="Отразить">
 
-      <svg viewBox="0 0 24 24">
-        <path d="M12 3v18"/>
-        <path d="M4 6l6 6-6 6z"/>
-        <path d="M20 6l-6 6 6 6z"/>
-      </svg>
+  <svg viewBox="0 0 24 24">
+    <path d="M12 3v18"/>
+    <path d="M4 6l6 6-6 6z"/>
+    <path d="M20 6l-6 6 6 6z"/>
+  </svg>
 
-    </button>
+</button>
 
-    <button class="tool icon" id="muteBtn" title="Без звука">
+<button class="tool icon" id="muteBtn" title="Без звука">
 
-      <svg viewBox="0 0 24 24">
-        <path d="M4 10v4h4l5 4V6l-5 4H4z"/>
-        <path d="M17 9l4 6M21 9l-4 6"/>
-      </svg>
+  <svg viewBox="0 0 24 24">
+    <path d="M4 10v4h4l5 4V6l-5 4H4z"/>
+    <path d="M17 9l4 6M21 9l-4 6"/>
+  </svg>
 
-    </button>
+</button>
 
-    <div class="sep"></div>
+<div class="sep"></div>
 
-    <button class="tool icon" id="resetBtn" title="Сбросить">
+<button class="tool icon" id="resetBtn" title="Сбросить">
 
-      <svg viewBox="0 0 24 24">
-        <path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/>
-        <path d="M4 4v4.5h4.5"/>
-      </svg>
+  <svg viewBox="0 0 24 24">
+    <path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/>
+    <path d="M4 4v4.5h4.5"/>
+  </svg>
 
-    </button>
+</button>
 
-    <div class="toolbar-spacer"></div>
+<div class="toolbar-spacer"></div>
 
-    <button
-      class="tool"
-      id="chooseBtn"
-      style="background:#053a99;color:#fff;"
-    >
+<button
+  class="tool"
+  id="chooseBtn"
+  style="background:#053a99;color:#fff;"
+>
 
-      <svg viewBox="0 0 24 24">
-        <path d="M12 3v12"/>
-        <path d="m7 8 5-5 5 5"/>
-        <path d="M5 13v6h14v-6"/>
-      </svg>
+  <svg viewBox="0 0 24 24">
+    <path d="M12 3v12"/>
+    <path d="m7 8 5-5 5 5"/>
+    <path d="M5 13v6h14v-6"/>
+  </svg>
 
-      <span>Загрузить</span>
+  <span>Загрузить</span>
 
-    </button>
+</button>
 
-    <input
-      id="fileInput"
-      type="file"
-      accept="video/*,.mp4,.mov,.webm,.m4v,.mkv,.avi"
-    >
+<input
+  id="fileInput"
+  type="file"
+  accept="video/*,.mp4,.mov,.webm,.m4v,.mkv,.avi"
+>
 
   </div>
-
 
   <!-- =================================================
        MAIN
@@ -795,295 +796,93 @@ video{
 
   <div class="main">
 
-    <!-- PREVIEW -->
+<!-- PREVIEW -->
 
-    <div class="panel preview-panel">
+<div class="panel preview-panel">
 
-      <div class="preview-stage" id="stage">
+  <div class="preview-stage" id="stage">
 
-        <video
-          id="video"
-          playsinline
-          preload="metadata"
-        ></video>
+    <video
+      id="video"
+      playsinline
+      preload="metadata"
+    ></video>
 
-        <div class="empty" id="empty">
+    <div class="empty" id="empty">
 
-          <strong>AURA Video Editor</strong>
+      <strong>AURA Video Editor</strong>
 
-          <span>
-            Загрузите MP4 / MOV / WebM
-          </span>
+      <span>
+        Загрузите MP4 / MOV / WebM
+      </span>
 
-        </div>
+    </div>
 
-        <!-- CROP BOX -->
+    <!-- CROP BOX -->
 
-        <div class="crop-box" id="cropBox">
+    <div class="crop-box" id="cropBox">
 
-          <div class="lineV v1"></div>
-          <div class="lineV v2"></div>
+      <div class="lineV v1"></div>
+      <div class="lineV v2"></div>
 
-          <div class="lineH h1"></div>
-          <div class="lineH h2"></div>
+      <div class="lineH h1"></div>
+      <div class="lineH h2"></div>
 
-          <i class="handle tl" data-h="tl"></i>
-          <i class="handle tr" data-h="tr"></i>
-          <i class="handle bl" data-h="bl"></i>
-          <i class="handle br" data-h="br"></i>
-
-        </div>
-
-
-        <div class="engine" id="engine">
-          FFmpeg не загружен
-        </div>
-
-
-        <div class="status" id="status"></div>
-
-
-        <div class="progress">
-          <i id="progressBar"></i>
-        </div>
-
-
-        <!-- DOWNLOAD WINDOW -->
-
-        <div
-          class="download-panel"
-          id="downloadPanel"
-        >
-
-          <div class="download-title">
-            Видео готово
-          </div>
-
-          <div class="download-subtitle">
-            Выберите способ сохранения MP4
-          </div>
-
-          <button
-            class="download-main"
-            id="downloadBtn"
-          >
-            Скачать MP4
-          </button>
-
-          <button
-            class="download-open"
-            id="openResultBtn"
-          >
-            Открыть видео
-          </button>
-
-          <button
-            class="download-close"
-            id="closeDownloadBtn"
-          >
-            Закрыть
-          </button>
-
-        </div>
-
-      </div>
+      <i class="handle tl" data-h="tl"></i>
+      <i class="handle tr" data-h="tr"></i>
+      <i class="handle bl" data-h="bl"></i>
+      <i class="handle br" data-h="br"></i>
 
     </div>
 
 
-    <!-- CROP PANEL -->
+    <div class="engine" id="engine">
+      FFmpeg не загружен
+    </div>
+
+
+    <div class="status" id="status"></div>
+
+
+    <div class="progress">
+      <i id="progressBar"></i>
+    </div>
+
+
+    <!-- DOWNLOAD WINDOW -->
 
     <div
-      class="panel crop-panel"
-      id="cropPanel"
+      class="download-panel"
+      id="downloadPanel"
     >
 
-      <div class="crop-header">
-
-        <strong>Кадрирование</strong>
-
-        <span>
-          Можно менять размер прямо мышью
-        </span>
-
+      <div class="download-title">
+        Видео готово
       </div>
 
-      <div class="crop-grid">
-
-        <div class="range-row">
-
-          <span>X</span>
-
-          <input
-            id="xRange"
-            type="range"
-            min="0"
-            max="95"
-            value="0"
-          >
-
-          <div class="range-val" id="xVal">
-            0%
-          </div>
-
-        </div>
-
-        <div class="range-row">
-
-          <span>Y</span>
-
-          <input
-            id="yRange"
-            type="range"
-            min="0"
-            max="95"
-            value="0"
-          >
-
-          <div class="range-val" id="yVal">
-            0%
-          </div>
-
-        </div>
-
-        <div class="range-row">
-
-          <span>Ширина</span>
-
-          <input
-            id="wRange"
-            type="range"
-            min="5"
-            max="100"
-            value="100"
-          >
-
-          <div class="range-val" id="wVal">
-            100%
-          </div>
-
-        </div>
-
-        <div class="range-row">
-
-          <span>Высота</span>
-
-          <input
-            id="hRange"
-            type="range"
-            min="5"
-            max="100"
-            value="100"
-          >
-
-          <div class="range-val" id="hVal">
-            100%
-          </div>
-
-        </div>
-
+      <div class="download-subtitle">
+        Выберите способ сохранения MP4
       </div>
-
-    </div>
-
-
-    <!-- TIMELINE -->
-
-    <div class="panel timeline">
-
-      <div class="film" id="film">
-
-        <div
-          class="thumbs"
-          id="thumbs"
-        ></div>
-
-        <div
-          class="trim-fill"
-          id="trimFill"
-        ></div>
-
-        <div
-          class="trim-handle"
-          id="leftHandle"
-        ></div>
-
-        <div
-          class="trim-handle"
-          id="rightHandle"
-        ></div>
-
-      </div>
-
-      <div class="time-scale">
-
-        <span id="scaleStart">
-          00:00.0
-        </span>
-
-        <span id="scaleMid">
-          00:00.0
-        </span>
-
-        <span id="scaleEnd">
-          00:00.0
-        </span>
-
-      </div>
-
-    </div>
-
-
-    <!-- BOTTOM -->
-
-    <div class="bottom">
 
       <button
-        class="play"
-        id="playBtn"
-        disabled
+        class="download-main"
+        id="downloadBtn"
       >
-
-        <svg
-          id="playIcon"
-          viewBox="0 0 24 24"
-        >
-          <path d="m8 5 11 7-11 7z"/>
-        </svg>
-
+        Скачать MP4
       </button>
 
-
-      <div class="time-inputs">
-
-        <input
-          id="startInput"
-          value="00:00.0"
-        >
-
-        <input
-          id="endInput"
-          value="00:00.0"
-        >
-
-      </div>
-
-
-      <div
-        class="file-info"
-        id="fileInfo"
-      ></div>
-
-
-      <div class="bottom-spacer"></div>
-
+      <button
+        class="download-open"
+        id="openResultBtn"
+      >
+        Открыть видео
+      </button>
 
       <button
-        class="save"
-        id="saveBtn"
-        disabled
+        class="download-close"
+        id="closeDownloadBtn"
       >
-        Сохранить
+        Закрыть
       </button>
 
     </div>
@@ -1092,6 +891,207 @@ video{
 
 </div>
 
+
+<!-- CROP PANEL -->
+
+<div
+  class="panel crop-panel"
+  id="cropPanel"
+>
+
+  <div class="crop-header">
+
+    <strong>Кадрирование</strong>
+
+    <span>
+      Можно менять размер прямо мышью
+    </span>
+
+  </div>
+
+  <div class="crop-grid">
+
+    <div class="range-row">
+
+      <span>X</span>
+
+      <input
+        id="xRange"
+        type="range"
+        min="0"
+        max="95"
+        value="0"
+      >
+
+      <div class="range-val" id="xVal">
+        0%
+      </div>
+
+    </div>
+
+    <div class="range-row">
+
+      <span>Y</span>
+
+      <input
+        id="yRange"
+        type="range"
+        min="0"
+        max="95"
+        value="0"
+      >
+
+      <div class="range-val" id="yVal">
+        0%
+      </div>
+
+    </div>
+
+    <div class="range-row">
+
+      <span>Ширина</span>
+
+      <input
+        id="wRange"
+        type="range"
+        min="5"
+        max="100"
+        value="100"
+      >
+
+      <div class="range-val" id="wVal">
+        100%
+      </div>
+
+    </div>
+
+    <div class="range-row">
+
+      <span>Высота</span>
+
+      <input
+        id="hRange"
+        type="range"
+        min="5"
+        max="100"
+        value="100"
+      >
+
+      <div class="range-val" id="hVal">
+        100%
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- TIMELINE -->
+
+<div class="panel timeline">
+
+  <div class="film" id="film">
+
+    <div
+      class="thumbs"
+      id="thumbs"
+    ></div>
+
+    <div
+      class="trim-fill"
+      id="trimFill"
+    ></div>
+
+    <div
+      class="trim-handle"
+      id="leftHandle"
+    ></div>
+
+    <div
+      class="trim-handle"
+      id="rightHandle"
+    ></div>
+
+  </div>
+
+  <div class="time-scale">
+
+    <span id="scaleStart">
+      00:00.0
+    </span>
+
+    <span id="scaleMid">
+      00:00.0
+    </span>
+
+    <span id="scaleEnd">
+      00:00.0
+    </span>
+
+  </div>
+
+</div>
+
+
+<!-- BOTTOM -->
+
+<div class="bottom">
+
+  <button
+    class="play"
+    id="playBtn"
+    disabled
+  >
+
+    <svg
+      id="playIcon"
+      viewBox="0 0 24 24"
+    >
+      <path d="m8 5 11 7-11 7z"/>
+    </svg>
+
+  </button>
+
+
+  <div class="time-inputs">
+
+    <input
+      id="startInput"
+      value="00:00.0"
+    >
+
+    <input
+      id="endInput"
+      value="00:00.0"
+    >
+
+  </div>
+
+
+  <div
+    class="file-info"
+    id="fileInfo"
+  ></div>
+
+
+  <div class="bottom-spacer"></div>
+
+
+  <button
+    class="save"
+    id="saveBtn"
+    disabled
+  >
+    Сохранить
+  </button>
+
+</div>
+
+  </div>
+
+</div>
 
 <!-- =====================================================
      FFMPEG.WASM 0.12.10
@@ -1104,7 +1104,6 @@ video{
 <script
   src="./vendor/ffmpeg.js"
 ></script>
-
 
 <script>
 "use strict";
