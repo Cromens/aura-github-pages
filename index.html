@@ -1689,217 +1689,149 @@ async function loadFFmpeg(){
   if(ffmpegLoaded)
     return true;
 
-
   if(ffmpegLoading){
-
     while(ffmpegLoading){
-
-      await new Promise(
-        resolve =>
-          setTimeout(
-            resolve,
-            100
-          )
-      );
-
+      await new Promise(resolve => setTimeout(resolve,100));
     }
-
     return ffmpegLoaded;
   }
 
+  ffmpegLoading = true;
 
-  ffmpegLoading =
-    true;
+  engine.classList.add("show");
+  engine.textContent = "Загрузка FFmpeg…";
+  setStatus("Загрузка видеодвижка…", true);
 
-
-  engine.classList.add(
-    "show"
-  );
-
-  engine.textContent =
-    "Загрузка FFmpeg…";
-
-
-  setStatus(
-    "Загрузка видеодвижка…",
-    true
-  );
-
+  let workerBlobURL = null;
 
   try{
 
-    /*
-     * IMPORTANT:
-     *
-     * There is deliberately NO
-     * SharedArrayBuffer code here.
-     */
-
-    const FFmpegClass =
-      getFFmpegClass();
-
+    const FFmpegClass = getFFmpegClass();
 
     if(!FFmpegClass){
-
       throw new Error(
-        "Класс FFmpeg не найден. " +
-        "Проверьте загрузку ffmpeg.js."
+        "Класс FFmpeg не найден. Проверьте vendor/ffmpeg.js."
       );
-
     }
 
-
-    ffmpeg =
-      new FFmpegClass();
-
-
-    /*
-     * Log.
-     */
+    ffmpeg = new FFmpegClass();
 
     try{
-
-      ffmpeg.on(
-        "log",
-        ({message}) => {
-
-          console.log(
-            "[AURA FFmpeg]",
-            message
-          );
-
-        }
-      );
-
+      ffmpeg.on("log", ({message}) => {
+        console.log("[AURA FFmpeg]", message);
+      });
     }catch(e){}
-
-
-    /*
-     * Progress.
-     */
 
     try{
-
-      ffmpeg.on(
-        "progress",
-        ({progress}) => {
-
-          if(
-            isExporting &&
-            typeof progress ===
-              "number"
-          ){
-
-            /*
-             * Keep 0-95 for FFmpeg.
-             */
-
-            setProgress(
-              Math.min(
-                95,
-                Math.max(
-                  0,
-                  progress * 95
-                )
-              )
-            );
-
-          }
-
+      ffmpeg.on("progress", ({progress}) => {
+        if(isExporting && typeof progress === "number"){
+          setProgress(Math.min(95, Math.max(0, progress * 95)));
         }
-      );
-
+      });
     }catch(e){}
 
+    engine.textContent = "Подключение FFmpeg core…";
 
     /*
-     * Download core files.
+     * ВАЖНО.
      *
-     * Using Blob URLs makes the loading
-     * more tolerant of cross-origin iframe
-     * restrictions.
+     * Ошибка на скриншоте:
+     *   Error: failed to import ffmpeg-core.js
+     *
+     * Возникала потому, что предыдущая версия пыталась
+     * запускать локальный core через UMD/worker-связку 0.12.10.
+     *
+     * Для браузерного worker используем официальный ESM core.
+     * Это особенно важно для GitHub Pages/Wix iframe.
+     *
+     * Core и WASM берём из одной версии 0.12.10.
+     * Worker самого @ffmpeg/ffmpeg превращаем в Blob URL,
+     * поэтому браузер не блокирует его как cross-origin Worker.
      */
 
-    engine.textContent =
-      "Загрузка ядра FFmpeg…";
+    const CORE_URL =
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js";
 
+    const WASM_URL =
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm";
 
-    /*
-     * FFmpeg 0.12.x resolves classWorkerURL relative to
-     * the FFmpeg library module, NOT relative to index.html.
-     * A relative "./vendor/814.ffmpeg.js" therefore becomes
-     * the broken file:///.../ffmpeg.wasm/... path shown in
-     * the console.
-     *
-     * Build absolute same-origin URLs from the actual page.
-     * This is the important fix for GitHub Pages/Wix iframe.
-     */
-    const assetURL = name =>
-      new URL(
-        "./vendor/" + name,
-        document.baseURI || window.location.href
-      ).href;
+    const WORKER_URL =
+      "https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/814.ffmpeg.js";
 
-    const coreURL =
-      assetURL("ffmpeg-core.js");
-
-    const wasmURL =
-      assetURL("ffmpeg-core.wasm");
-
-    const classWorkerURL =
-      assetURL("814.ffmpeg.js");
-
-    console.log("AURA FFmpeg assets:", {
-      coreURL,
-      wasmURL,
-      classWorkerURL
+    console.log("AURA FFmpeg URLs:", {
+      coreURL: CORE_URL,
+      wasmURL: WASM_URL,
+      workerSource: WORKER_URL,
+      sharedArrayBufferRequired: false
     });
+
+    /*
+     * Скачиваем 814.ffmpeg.js и создаём локальный Blob Worker.
+     * Это обходит ограничение браузера на Worker с другого origin.
+     */
+
+    const workerResponse = await fetch(
+      WORKER_URL,
+      {
+        mode: "cors",
+        cache: "force-cache"
+      }
+    );
+
+    if(!workerResponse.ok){
+      throw new Error(
+        "Не удалось загрузить FFmpeg worker: HTTP " +
+        workerResponse.status
+      );
+    }
+
+    const workerCode = await workerResponse.text();
+
+    if(!workerCode || workerCode.length < 1000){
+      throw new Error(
+        "FFmpeg worker загрузился пустым или повреждённым."
+      );
+    }
+
+    workerBlobURL = URL.createObjectURL(
+      new Blob(
+        [workerCode],
+        {type:"text/javascript"}
+      )
+    );
+
+    console.log(
+      "AURA: FFmpeg worker prepared as Blob URL."
+    );
+
+    engine.textContent = "Загрузка ядра FFmpeg…";
+
+    /*
+     * НЕ используем classWorkerURL как относительный путь.
+     * НЕ используем file://.
+     * НЕ используем SharedArrayBuffer.
+     */
 
     await ffmpeg.load({
-      coreURL,
-      wasmURL,
-      classWorkerURL
+      coreURL: CORE_URL,
+      wasmURL: WASM_URL,
+      classWorkerURL: workerBlobURL
     });
 
+    ffmpegLoaded = true;
 
-    /*
-     * Core files are same-origin static files.
-     * Do not revoke them.
-     */
+    engine.textContent = "FFmpeg готов";
+    setStatus("", false);
 
-
-    ffmpegLoaded =
-      true;
-
-
-    engine.textContent =
-      "FFmpeg готов";
-
-
-    setStatus(
-      "",
-      false
-    );
-
-
-    setTimeout(
-      () => {
-
-        engine.classList.remove(
-          "show"
-        );
-
-      },
-      1200
-    );
-
+    setTimeout(() => {
+      engine.classList.remove("show");
+    },1200);
 
     console.log(
       "AURA: FFmpeg " +
       FFMPEG_VERSION +
-      " single-thread loaded."
+      " loaded successfully."
     );
-
 
     return true;
 
@@ -1910,33 +1842,40 @@ async function loadFFmpeg(){
       error
     );
 
+    ffmpegLoaded = false;
+    ffmpeg = null;
 
-    engine.textContent =
-      "Ошибка FFmpeg";
-
+    engine.textContent = "Ошибка FFmpeg";
 
     setStatus(
       "FFmpeg не удалось загрузить",
       true
     );
 
-
     alert(
       "Не удалось загрузить FFmpeg.\n\n" +
-      "Ошибка:\n" +
-      error.message +
+      "Причина:\n" +
+      (error && error.message
+        ? error.message
+        : String(error)) +
       "\n\n" +
-      "AURA использует single-thread FFmpeg и не требует SharedArrayBuffer."
+      "Попробуйте обновить страницу через Cmd + Shift + R."
     );
-
 
     return false;
 
   }finally{
 
-    ffmpegLoading =
-      false;
+    if(workerBlobURL){
+      /*
+       * Worker уже получил свой URL во время ffmpeg.load().
+       * URL нельзя отзывать сразу после load(), потому что
+       * экземпляр FFmpeg продолжает использовать Worker.
+       * Поэтому оставляем его жить до закрытия страницы.
+       */
+    }
 
+    ffmpegLoading = false;
   }
 }
 
