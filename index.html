@@ -95,6 +95,8 @@ button{
   border:1px solid var(--border);
   border-radius:15px;
   min-width:0;
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
 }
 
 /* =====================================================
@@ -290,8 +292,9 @@ video{
 
 .handle{
   position:absolute;
-  width:11px;
-  height:11px;
+  width:18px;
+  height:18px;
+  margin:-3px;
   background:#fff;
   border-radius:3px;
   box-shadow:0 0 0 1px rgba(0,0,0,.4);
@@ -516,7 +519,9 @@ video{
   display:flex;
   flex-direction:column;
   gap:5px;
-  background:#070a10;
+  background:var(--panel);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
 }
 
 .film{
@@ -553,11 +558,38 @@ video{
   pointer-events:none;
 }
 
+.timeline-playhead{
+  position:absolute;
+  top:-1px;
+  bottom:-1px;
+  width:2px;
+  left:0;
+  background:#fff;
+  box-shadow:0 0 8px rgba(255,255,255,.8);
+  transform:translateX(-1px);
+  pointer-events:none;
+  z-index:25;
+}
+
+.timeline-playhead::before{
+  content:"";
+  position:absolute;
+  top:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 8px rgba(255,255,255,.85);
+}
+
+
 .trim-handle{
   position:absolute;
   top:-2px;
   bottom:-2px;
-  width:12px;
+  width:16px;
   border-radius:5px;
   background:var(--accent);
   box-shadow:0 0 8px rgba(33,199,255,.35);
@@ -599,7 +631,10 @@ video{
   width:56px;
   height:100%;
   border-radius:11px;
-  background:var(--button);
+  background:var(--panel);
+  border:1px solid var(--border);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
   color:#8e99ab;
   cursor:pointer;
   display:flex;
@@ -625,11 +660,30 @@ video{
   gap:7px;
   padding:0 10px;
   border-radius:11px;
-  background:var(--button);
+  background:var(--panel);
+  border:1px solid var(--border);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
+}
+
+.current-time{
+  min-width:74px;
+  height:100%;
+  padding:0 12px;
+  border-radius:11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--panel);
+  border:1px solid var(--border);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
+  color:#fff;
+  font-variant-numeric:tabular-nums;
+  font-weight:650;
 }
 
 .time-inputs input{
-  width:70px;
   height:28px;
   border:0;
   outline:0;
@@ -776,14 +830,7 @@ video{
 
     <div class="sep"></div>
 
-    <button class="tool icon" id="resetBtn" title="Сбросить">
-
-      <svg viewBox="0 0 24 24">
-        <path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/>
-        <path d="M4 4v4.5h4.5"/>
-      </svg>
-
-    </button>
+    
 
     <div class="toolbar-spacer"></div>
 
@@ -900,12 +947,7 @@ video{
             Открыть видео
           </button>
 
-          <button
-            class="download-close"
-            id="closeDownloadBtn"
-          >
-            Закрыть
-          </button>
+          
 
         </div>
 
@@ -1027,6 +1069,11 @@ video{
         ></div>
 
         <div
+          class="timeline-playhead"
+          id="timelinePlayhead"
+        ></div>
+
+        <div
           class="trim-handle"
           id="leftHandle"
         ></div>
@@ -1091,6 +1138,11 @@ video{
 
       </div>
 
+
+      <div
+        class="current-time"
+        id="currentTime"
+      >00:00.0</div>
 
       <div
         class="file-info"
@@ -1248,9 +1300,6 @@ const playBtn =
 const playIcon =
   $("playIcon");
 
-const resetBtn =
-  $("resetBtn");
-
 const rotateBtn =
   $("rotateBtn");
 
@@ -1284,6 +1333,12 @@ const rightHandle =
 const trimFill =
   $("trimFill");
 
+const timelinePlayhead =
+  $("timelinePlayhead");
+
+const currentTimeDisplay =
+  $("currentTime");
+
 const startInput =
   $("startInput");
 
@@ -1310,10 +1365,6 @@ const downloadBtn =
 
 const openResultBtn =
   $("openResultBtn");
-
-const closeDownloadBtn =
-  $("closeDownloadBtn");
-
 
 /* =====================================================
    STATE
@@ -1743,8 +1794,36 @@ async function loadFFmpeg(){
       "Загрузка ядра FFmpeg…";
 
 
-    const coreURL = "./vendor/ffmpeg-core.js";
-    const wasmURL = "./vendor/ffmpeg-core.wasm";
+    /*
+     * Resolve assets from the real GitHub Pages document URL.
+     * This prevents a file:///... worker path in @ffmpeg/ffmpeg.
+     */
+    const coreURL =
+      new URL(
+        "./vendor/ffmpeg-core.js",
+        document.baseURI
+      ).href;
+
+    const wasmURL =
+      new URL(
+        "./vendor/ffmpeg-core.wasm",
+        document.baseURI
+      ).href;
+
+    const classWorkerURL =
+      new URL(
+        "./vendor/814.ffmpeg.js",
+        document.baseURI
+      ).href;
+
+    console.log(
+      "AURA FFmpeg assets:",
+      {
+        coreURL,
+        wasmURL,
+        classWorkerURL
+      }
+    );
 
 
     /*
@@ -1757,7 +1836,7 @@ async function loadFFmpeg(){
     await ffmpeg.load({
       coreURL: coreURL,
       wasmURL: wasmURL,
-      classWorkerURL: "./vendor/814.ffmpeg.js"
+      classWorkerURL: classWorkerURL
     });
 
 
@@ -2060,6 +2139,39 @@ video.addEventListener(
 
 
 /* =====================================================
+   PLAYHEAD + REAL-TIME CURRENT TIME
+===================================================== */
+
+function updatePlaybackUI(){
+
+  const t =
+    Math.max(
+      0,
+      Math.min(
+        duration || 0,
+        Number(video.currentTime) || 0
+      )
+    );
+
+  if(currentTimeDisplay){
+    currentTimeDisplay.textContent =
+      formatTime(t);
+  }
+
+  if(timelinePlayhead){
+
+    const percent =
+      duration
+        ? (t / duration) * 100
+        : 0;
+
+    timelinePlayhead.style.left =
+      percent + "%";
+  }
+}
+
+
+/* =====================================================
    PLAY
 ===================================================== */
 
@@ -2136,6 +2248,8 @@ video.addEventListener(
   "timeupdate",
   () => {
 
+    updatePlaybackUI();
+
     if(
       endTime > 0 &&
       video.currentTime >=
@@ -2147,9 +2261,26 @@ video.addEventListener(
       video.currentTime =
         startTime;
 
+      updatePlaybackUI();
+
     }
 
   }
+);
+
+video.addEventListener(
+  "seeked",
+  updatePlaybackUI
+);
+
+video.addEventListener(
+  "loadedmetadata",
+  updatePlaybackUI
+);
+
+video.addEventListener(
+  "durationchange",
+  updatePlaybackUI
 );
 
 
@@ -2284,6 +2415,17 @@ function setTrim(
 
 
   updateTrimUI();
+
+  /* Show the exact frame selected by the trim handle. */
+  if(video.readyState >= 1){
+
+    video.currentTime =
+      side === "left"
+        ? startTime
+        : endTime;
+
+    updatePlaybackUI();
+  }
 }
 
 
@@ -2343,6 +2485,38 @@ rightHandle.addEventListener(
 );
 
 
+let timelineSeeking = false;
+
+function seekFromTimeline(event){
+
+  if(!duration)
+    return;
+
+  const rect =
+    film.getBoundingClientRect();
+
+  const percent =
+    Math.max(
+      0,
+      Math.min(
+        1,
+        (event.clientX - rect.left) /
+        rect.width
+      )
+    );
+
+  video.currentTime =
+    Math.max(
+      0,
+      Math.min(
+        duration,
+        percent * duration
+      )
+    );
+
+  updatePlaybackUI();
+}
+
 film.addEventListener(
   "pointerdown",
   event => {
@@ -2351,35 +2525,46 @@ film.addEventListener(
       return;
 
     if(
-      event.target.classList.contains(
-        "trim-handle"
-      )
+      event.target.classList.contains("trim-handle") ||
+      event.target.closest(".trim-handle")
     )
       return;
 
+    timelineSeeking = true;
 
-    const rect =
-      film.getBoundingClientRect();
+    try{
+      film.setPointerCapture(event.pointerId);
+    }catch(e){}
 
+    seekFromTimeline(event);
+  }
+);
 
-    const percent =
-      (
-        event.clientX -
-        rect.left
-      ) /
-      rect.width;
+film.addEventListener(
+  "pointermove",
+  event => {
 
+    if(timelineSeeking)
+      seekFromTimeline(event);
+  }
+);
 
-    video.currentTime =
-      Math.max(
-        startTime,
-        Math.min(
-          endTime,
-          percent *
-          duration
-        )
-      );
+film.addEventListener(
+  "pointerup",
+  event => {
 
+    timelineSeeking = false;
+
+    try{
+      film.releasePointerCapture(event.pointerId);
+    }catch(e){}
+  }
+);
+
+film.addEventListener(
+  "pointercancel",
+  () => {
+    timelineSeeking = false;
   }
 );
 
@@ -2451,6 +2636,52 @@ function pointerMove(event){
       pointerDrag.side,
       event.clientX
     );
+
+    return;
+  }
+
+
+  if(
+    pointerDrag.type ===
+    "crop-move"
+  ){
+
+    const rect =
+      video.getBoundingClientRect();
+
+    if(
+      !rect.width ||
+      !rect.height
+    )
+      return;
+
+    const dx =
+      (event.clientX - pointerDrag.startX) /
+      rect.width * 100;
+
+    const dy =
+      (event.clientY - pointerDrag.startY) /
+      rect.height * 100;
+
+    crop.x =
+      Math.max(
+        0,
+        Math.min(
+          100 - crop.w,
+          pointerDrag.cropX + dx
+        )
+      );
+
+    crop.y =
+      Math.max(
+        0,
+        Math.min(
+          100 - crop.h,
+          pointerDrag.cropY + dy
+        )
+      );
+
+    updateCropUI();
 
     return;
   }
@@ -2710,6 +2941,45 @@ function positionCropBox(){
 window.addEventListener(
   "resize",
   positionCropBox
+);
+
+
+/* =====================================================
+   MOVE WHOLE CROP BOX
+===================================================== */
+
+cropBox.addEventListener(
+  "pointerdown",
+  event => {
+
+    if(isExporting)
+      return;
+
+    if(event.target.closest(".handle"))
+      return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    pointerDrag = {
+      type:"crop-move",
+      startX:event.clientX,
+      startY:event.clientY,
+      cropX:crop.x,
+      cropY:crop.y
+    };
+
+    document.addEventListener(
+      "pointermove",
+      pointerMove
+    );
+
+    document.addEventListener(
+      "pointerup",
+      pointerUp,
+      { once:true }
+    );
+  }
 );
 
 
@@ -2997,146 +3267,6 @@ function applyPreviewTransform(){
 /* =====================================================
    RESET
 ===================================================== */
-
-resetBtn.onclick =
-() => {
-
-  if(isExporting)
-    return;
-
-
-  revokeURL(
-    sourceURL
-  );
-
-  revokeURL(
-    resultURL
-  );
-
-
-  sourceFile =
-    null;
-
-  sourceURL =
-    null;
-
-  resultURL =
-    null;
-
-  resultBlob =
-    null;
-
-  duration =
-    0;
-
-  startTime =
-    0;
-
-  endTime =
-    0;
-
-  rotate =
-    0;
-
-  mirror =
-    false;
-
-  muted =
-    false;
-
-
-  crop.x =
-    0;
-
-  crop.y =
-    0;
-
-  crop.w =
-    100;
-
-  crop.h =
-    100;
-
-
-  cropMode =
-    false;
-
-
-  video.pause();
-
-  video.removeAttribute(
-    "src"
-  );
-
-  video.load();
-
-
-  empty.style.display =
-    "flex";
-
-
-  thumbs.innerHTML =
-    "";
-
-
-  fileInfo.textContent =
-    "";
-
-
-  saveBtn.disabled =
-    true;
-
-  playBtn.disabled =
-    true;
-
-
-  cropBtn.classList.remove(
-    "active"
-  );
-
-  mirrorBtn.classList.remove(
-    "active"
-  );
-
-  muteBtn.classList.remove(
-    "active"
-  );
-
-
-  cropPanel.classList.remove(
-    "show"
-  );
-
-
-  cropBox.style.display =
-    "none";
-
-
-  downloadPanel.classList.remove(
-    "show"
-  );
-
-
-  setProgress(0);
-
-  setStatus(
-    "",
-    false
-  );
-
-
-  updateScale();
-
-  updateTrimUI();
-
-  updateCropUI();
-
-  applyPreviewTransform();
-
-  updatePlayIcon();
-
-};
-
 
 /* =====================================================
    SCALE
@@ -4161,29 +4291,50 @@ async function smartDownload(){
 
     try{
 
-      downloadWithAnchor();
-
-
-      setStatus(
-        "Скачивание запущено",
-        true
+      window.parent.postMessage(
+        {
+          type:"AURA_DOWNLOAD",
+          filename:
+            fileBaseName(
+              sourceFile &&
+              sourceFile.name
+            ) + "_edited.mp4",
+          blob:resultBlob
+        },
+        "https://cromens.wixstudio.com"
       );
 
+      setStatus(
+        "Скачивание передано Wix…",
+        true
+      );
 
       return;
 
     }catch(error){
 
-      console.log(
-        "AURA iframe download failed:",
+      console.error(
+        "AURA Wix download bridge failed:",
         error
       );
 
+      try{
 
-      openResult();
+        downloadWithAnchor();
 
-      return;
+        setStatus(
+          "Скачивание запущено",
+          true
+        );
 
+        return;
+
+      }catch(fallbackError){
+
+        openResult();
+
+        return;
+      }
     }
 
   }
@@ -4294,21 +4445,6 @@ openResultBtn.onclick =
 };
 
 
-closeDownloadBtn.onclick =
-() => {
-
-  downloadPanel.classList.remove(
-    "show"
-  );
-
-  setStatus(
-    "",
-    false
-  );
-
-};
-
-
 /* =====================================================
    SAVE BUTTON
 ===================================================== */
@@ -4338,6 +4474,7 @@ updateTrimUI();
 updateCropUI();
 
 updatePlayIcon();
+updatePlaybackUI();
 
 
 /* =====================================================
