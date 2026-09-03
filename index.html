@@ -8,15 +8,17 @@
 
 <style>
 :root{
-  --bg:#071426;
-  --panel:rgba(40,40,40,.16);
-  --border:rgba(255,255,255,.07);
+  --bg:transparent;
+  --panel:rgba(40,40,40,.15);
+  --panel-strong:rgba(40,40,40,.15);
+  --border:rgba(110,110,110,.15);
+  --border-strong:rgba(255,255,255,.15);
   --button:#282828;
-  --buttonText:#d8deea;
+  --buttonText:#6E6E6E;
   --primary:#053a99;
-  --accent:#21c7ff;
+  --accent:#1677ff;
   --muted:#778398;
-  --white:#fff;
+  --white:#fcfcfc;
 }
 
 *{
@@ -31,17 +33,25 @@ body{
   overflow:hidden;
 }
 
-body{
-  background:var(--bg);
-  color:var(--white);
-  font-family:
-    Inter,
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
-  font-size:12px;
+body {
+  background: transparent !important;
+}
+
+body {
+  color: var(--white);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 12px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Standalone GitHub Pages background. Wix iframe becomes transparent automatically. */
+html:not(.aura-embedded),
+html:not(.aura-embedded) body{
+  background:#071426 !important;
+}
+html.aura-embedded,
+html.aura-embedded body{
+  background:transparent !important;
 }
 
 button,
@@ -72,11 +82,44 @@ button{
   border:1px solid var(--border);
   border-radius:15px;
   min-width:0;
+  backdrop-filter:blur(15px) saturate(125%);
+  -webkit-backdrop-filter:blur(15px) saturate(125%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 14px 40px rgba(0,0,0,.18);
 }
 
+/* =====================================================
+   AURA BRAND
+===================================================== */
 
-.aura-brand{height:32px;min-width:72px;padding:0 12px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:#fff;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:.16em;background:rgba(40,40,40,.15);border:1px solid rgba(110,110,110,.15);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);}
-.aura-brand:hover{background:rgba(40,40,40,.22);color:#fff;}
+.aura-brand{
+  height:32px;
+  min-width:78px;
+  padding:0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+  color:#fff;
+  text-decoration:none;
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:.16em;
+  background:rgba(40,40,40,.24);
+  border:1px solid rgba(110,110,110,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
+  transition:.18s ease;
+}
+
+.aura-brand:hover{
+  color:#fff;
+  background:rgba(40,40,40,.38);
+  border-color:rgba(255,255,255,.18);
+  transform:translateY(-1px);
+}
 
 /* =====================================================
    TOOLBAR
@@ -97,7 +140,7 @@ button{
   min-width:30px;
   padding:0 10px;
   border-radius:9px;
-  background:var(--button);
+  background:rgba(40,40,40,.22);
   color:var(--buttonText);
   display:flex;
   align-items:center;
@@ -107,6 +150,10 @@ button{
   white-space:nowrap;
   font-size:11px;
   font-weight:650;
+  border:1px solid rgba(110,110,110,.15);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
   transition:.15s ease;
 }
 
@@ -228,10 +275,14 @@ video{
 .crop-box{
   position:absolute;
   display:none;
-  border:1px solid var(--accent);
-  box-shadow:0 0 0 9999px rgba(0,0,0,.32);
+  border:2px solid rgba(255,255,255,.95);
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,.48),
+    0 0 20px rgba(22,119,255,.28);
   z-index:20;
   touch-action:none;
+  cursor:move;
+  user-select:none;
 }
 
 .crop-box .lineV,
@@ -271,35 +322,48 @@ video{
 
 .handle{
   position:absolute;
-  width:11px;
-  height:11px;
-  background:#fff;
-  border-radius:3px;
-  box-shadow:0 0 0 1px rgba(0,0,0,.4);
+  width:22px;
+  height:22px;
+  background:rgba(255,255,255,.98);
+  border:2px solid #1677ff;
+  border-radius:6px;
+  box-shadow:
+    0 2px 10px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,255,255,.28);
   z-index:30;
+  touch-action:none;
 }
 
+.handle::after{
+  content:"";
+  position:absolute;
+  inset:5px;
+  border-radius:3px;
+  background:#1677ff;
+}
+
+
 .handle.tl{
-  left:-6px;
-  top:-6px;
+  left:-11px;
+  top:-11px;
   cursor:nwse-resize;
 }
 
 .handle.tr{
-  right:-6px;
-  top:-6px;
+  right:-11px;
+  top:-11px;
   cursor:nesw-resize;
 }
 
 .handle.bl{
-  left:-6px;
-  bottom:-6px;
+  left:-11px;
+  bottom:-11px;
   cursor:nesw-resize;
 }
 
 .handle.br{
-  right:-6px;
-  bottom:-6px;
+  right:-11px;
+  bottom:-11px;
   cursor:nwse-resize;
 }
 
@@ -375,8 +439,9 @@ video{
   justify-content:center;
   flex-direction:column;
   gap:10px;
-  background:rgba(5,8,13,.72);
-  backdrop-filter:blur(5px);
+  background:rgba(5,8,13,.58);
+  border:1px solid rgba(255,255,255,.08);
+  backdrop-filter:blur(15px) saturate(130%);
   z-index:150;
 }
 
@@ -405,8 +470,8 @@ video{
 }
 
 .download-main{
-  background:#fff;
-  color:#0a0d12;
+  background:var(--primary);
+  color:#fff;
 }
 
 .download-open{
@@ -417,14 +482,6 @@ video{
 .download-main:hover,
 .download-open:hover{
   filter:brightness(1.12);
-}
-
-.download-close{
-  background:transparent;
-  color:#7f8ba0;
-  cursor:pointer;
-  padding:5px 10px;
-  font-size:10px;
 }
 
 /* =====================================================
@@ -497,7 +554,10 @@ video{
   display:flex;
   flex-direction:column;
   gap:5px;
-  background:#070a10;
+  background:rgba(40,40,40,.15);
+  border:1px solid rgba(110,110,110,.15);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
 }
 
 .film{
@@ -528,18 +588,19 @@ video{
   position:absolute;
   top:0;
   bottom:0;
-  background:rgba(33,199,255,.11);
-  border-left:3px solid var(--accent);
-  border-right:3px solid var(--accent);
+  background:rgba(22,119,255,.13);
+  border-left:2px solid rgba(22,119,255,.75);
+  border-right:2px solid rgba(22,119,255,.75);
   pointer-events:none;
 }
 
 .trim-handle{
   position:absolute;
-  top:-2px;
-  bottom:-2px;
-  width:12px;
-  border-radius:5px;
+  top:-1px;
+  bottom:-1px;
+  width:20px;
+  transform:translateX(-50%);
+  border-radius:7px;
   background:var(--accent);
   box-shadow:0 0 8px rgba(33,199,255,.35);
   cursor:ew-resize;
@@ -549,12 +610,53 @@ video{
 .trim-handle:after{
   content:"";
   position:absolute;
-  left:4px;
-  top:22%;
-  bottom:22%;
-  width:3px;
-  border-radius:2px;
-  background:rgba(255,255,255,.75);
+  left:50%;
+  top:18%;
+  bottom:18%;
+  width:4px;
+  transform:translateX(-50%);
+  border-radius:3px;
+  background:#fff;
+  box-shadow:0 0 7px rgba(255,255,255,.45);
+}
+
+/* Реальный ползунок текущего кадра видео */
+.playhead{
+  position:absolute;
+  top:-2px;
+  bottom:-2px;
+  width:18px;
+  transform:translateX(-50%);
+  z-index:32;
+  cursor:ew-resize;
+  touch-action:none;
+}
+
+.playhead::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:0;
+  bottom:0;
+  width:2px;
+  transform:translateX(-50%);
+  background:#fff;
+  box-shadow:
+    0 0 0 1px rgba(0,0,0,.35),
+    0 0 9px rgba(255,255,255,.7);
+}
+
+.playhead::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-1px;
+  width:9px;
+  height:9px;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 0 2px #1677ff,0 0 10px rgba(22,119,255,.65);
 }
 
 .time-scale{
@@ -574,14 +676,23 @@ video{
   display:flex;
   align-items:center;
   gap:8px;
+  padding:5px;
+  border-radius:15px;
+  background:rgba(40,40,40,.15);
+  border:1px solid rgba(110,110,110,.15);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
 }
 
 .play{
   width:56px;
   height:100%;
   border-radius:11px;
-  background:var(--button);
-  color:#8e99ab;
+  background:rgba(40,40,40,.15);
+  color:#6E6E6E;
+  border:1px solid rgba(110,110,110,.15);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
   cursor:pointer;
   display:flex;
   align-items:center;
@@ -606,7 +717,10 @@ video{
   gap:7px;
   padding:0 10px;
   border-radius:11px;
-  background:var(--button);
+  background:rgba(40,40,40,.15);
+  border:1px solid rgba(110,110,110,.15);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
 }
 
 .time-inputs input{
@@ -619,6 +733,24 @@ video{
   color:#fff;
   text-align:center;
   font-size:11px;
+}
+
+.current-time{
+  min-width:64px;
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 9px;
+  border-radius:11px;
+  background:rgba(40,40,40,.15);
+  border:1px solid rgba(110,110,110,.15);
+  color:#fff;
+  font-variant-numeric:tabular-nums;
+  font-size:11px;
+  font-weight:700;
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
 }
 
 .file-info{
@@ -637,8 +769,10 @@ video{
   min-width:125px;
   height:100%;
   border-radius:11px;
-  background:#fff;
-  color:#0a0d13;
+  background:#053A99;
+  color:#fff;
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
   font-weight:700;
   cursor:pointer;
 }
@@ -653,6 +787,9 @@ video{
 ===================================================== */
 
 @media(max-width:700px){
+
+  .aura-brand{min-width:64px;padding:0 9px;font-size:12px;}
+  .toolbar .sep{margin:0 1px;}
 
   #app{
     padding:6px;
@@ -689,50 +826,39 @@ video{
     display:none;
   }
 
-  .time-current{
-    min-width:64px;
-    padding:0 8px;
-  }
-
   .save{
     min-width:100px;
   }
 }
 
-/* =====================================================
-   AURA GLASS / ADAPTIVE BACKGROUND
-===================================================== */
-html.aura-embedded,
-html.aura-embedded body{
-  background:transparent !important;
-}
-
-.panel,
-.preview-panel,
-.timeline{
-  background:rgba(40,40,40,.15) !important;
+/* AURA GLASS SYSTEM — FINAL OVERRIDES */
+.panel{
+  background:rgba(40,40,40,.15);
   border:1px solid rgba(110,110,110,.15);
-  backdrop-filter:blur(15px) saturate(120%);
-  -webkit-backdrop-filter:blur(15px) saturate(120%);
+  backdrop-filter:blur(15px) saturate(125%);
+  -webkit-backdrop-filter:blur(15px) saturate(125%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 14px 40px rgba(0,0,0,.18);
 }
 
 .tool,
 .play,
 .time-inputs{
-  background:rgba(40,40,40,.15) !important;
+  background:rgba(40,40,40,.15);
   color:#6E6E6E;
   border:1px solid rgba(110,110,110,.15);
-  backdrop-filter:blur(15px) saturate(120%);
-  -webkit-backdrop-filter:blur(15px) saturate(120%);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
 }
 
-.tool:hover,
-.play:hover{
-  background:rgba(40,40,40,.22) !important;
-  color:#fff;
+.tool svg,
+.play svg{
+  stroke:currentColor;
 }
 
+.tool.active,
 #chooseBtn,
 .save,
 .download-main{
@@ -740,104 +866,83 @@ html.aura-embedded body{
   color:#fff !important;
 }
 
-.time-current{
-  min-width:72px;
-  height:100%;
-  padding:0 12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  border-radius:11px;
-  background:rgba(40,40,40,.15);
-  border:1px solid rgba(110,110,110,.15);
-  backdrop-filter:blur(15px) saturate(120%);
-  -webkit-backdrop-filter:blur(15px) saturate(120%);
+.tool:not(.active):hover,
+.play:hover{
+  background:rgba(48,48,48,.38);
   color:#fff;
-  font-variant-numeric:tabular-nums;
-  font-size:11px;
-  font-weight:700;
-  letter-spacing:.02em;
 }
 
-/* The thumbnail strip stays dark so the video frames remain readable. */
-.film{
-  background:rgba(2,3,5,.38);
+.crop-box{
+  border:2px solid rgba(255,255,255,.96);
+  box-shadow:
+    0 0 0 9999px rgba(0,0,0,.48),
+    0 0 20px rgba(22,119,255,.28);
+  cursor:move;
 }
 
-/* Larger, easier trim handles */
-.trim-handle{
-  top:-2px;
-  bottom:-2px;
-  width:20px;
-  transform:translateX(-50%);
-  border-radius:7px;
-  background:#1677ff;
-  box-shadow:0 0 0 1px rgba(255,255,255,.18),0 0 10px rgba(22,119,255,.45);
-  cursor:ew-resize;
-  z-index:20;
+.crop-box .lineV,
+.crop-box .lineH{
+  background:rgba(255,255,255,.28);
 }
 
-.trim-handle:after{
-  left:50%;
-  top:18%;
-  bottom:18%;
-  width:4px;
-  transform:translateX(-50%);
-  background:#fff;
-  box-shadow:0 0 7px rgba(255,255,255,.5);
-}
-
-/* Real-time main playhead */
-.playhead{
-  position:absolute;
-  top:-3px;
-  bottom:-3px;
-  width:18px;
-  transform:translateX(-50%);
-  z-index:35;
-  cursor:ew-resize;
-  touch-action:none;
-}
-.playhead::before{
-  content:"";
-  position:absolute;
-  left:50%; top:0; bottom:0;
-  width:2px;
-  transform:translateX(-50%);
-  background:#fff;
-  box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 9px rgba(255,255,255,.7);
-}
-.playhead::after{
-  content:"";
-  position:absolute;
-  left:50%; top:0;
-  width:9px; height:9px;
-  transform:translate(-50%,-25%);
-  border-radius:50%;
-  background:#fff;
-  box-shadow:0 0 0 2px #1677ff,0 0 10px rgba(22,119,255,.65);
-}
-
-/* Bigger crop corners */
 .handle{
-  width:22px; height:22px;
-  background:rgba(255,255,255,.98);
+  width:22px;
+  height:22px;
   border:2px solid #1677ff;
   border-radius:6px;
-  box-shadow:0 2px 10px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.28);
-  touch-action:none;
+  background:rgba(255,255,255,.98);
+  box-shadow:
+    0 2px 10px rgba(0,0,0,.55),
+    0 0 0 1px rgba(255,255,255,.28);
 }
+
 .handle::after{
-  content:""; position:absolute; inset:5px; border-radius:3px; background:#1677ff;
+  content:"";
+  position:absolute;
+  inset:5px;
+  border-radius:3px;
+  background:#1677ff;
 }
+
 .handle.tl{left:-11px;top:-11px}
 .handle.tr{right:-11px;top:-11px}
 .handle.bl{left:-11px;bottom:-11px}
 .handle.br{right:-11px;bottom:-11px}
 
-/* Presets instead of four numeric crop sliders */
-.crop-grid{display:none !important;}
-.crop-presets{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.trim-handle{
+  width:20px;
+  transform:translateX(-50%);
+  border-radius:7px;
+  background:#1677ff;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.16),
+    0 0 12px rgba(22,119,255,.45);
+}
+
+.trim-handle:after{
+  left:50%;
+  transform:translateX(-50%);
+  width:4px;
+  background:#fff;
+  box-shadow:0 0 7px rgba(255,255,255,.45);
+}
+
+.playhead{
+  z-index:32;
+}
+
+.crop-panel{
+  padding:11px 14px;
+  min-height:88px;
+}
+
+.crop-presets{
+  display:flex;
+  gap:7px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
 .crop-preset{
   border:1px solid rgba(110,110,110,.15);
   background:rgba(40,40,40,.15);
@@ -851,30 +956,31 @@ html.aura-embedded body{
   backdrop-filter:blur(15px);
   -webkit-backdrop-filter:blur(15px);
 }
-.crop-preset:hover,.crop-preset.active{background:#053A99;color:#fff;border-color:rgba(255,255,255,.16);}
 
-.download-panel{
-  background:rgba(5,8,13,.55);
-  backdrop-filter:blur(15px) saturate(125%);
-  -webkit-backdrop-filter:blur(15px) saturate(125%);
+.crop-preset:hover,
+.crop-preset.active{
+  background:#053A99;
+  color:#fff;
+  border-color:rgba(255,255,255,.16);
 }
 
-/* Detect iframe before first paint */
+.crop-hint{
+  color:#6E6E6E;
+  font-size:10px;
+  margin-left:auto;
+}
+
+.download-panel{
+  backdrop-filter:blur(15px) saturate(130%);
+  -webkit-backdrop-filter:blur(15px) saturate(130%);
+}
+
+.save{
+  background:#053A99;
+  color:#fff;
+}
+
 </style>
-<script>
-(function(){
-  try{
-    if(window.self !== window.top){
-      document.documentElement.classList.add("aura-embedded");
-      console.log("AURA: embedded iframe mode detected — transparent page background active.");
-    }else{
-      console.log("AURA: standalone mode detected — dark blue page background is active.");
-    }
-  }catch(e){
-    document.documentElement.classList.add("aura-embedded");
-  }
-})();
-</script>
 </head>
 
 <body>
@@ -889,25 +995,13 @@ html.aura-embedded body{
 
     <a
       class="aura-brand"
-      href="https://cromens.wixstudio.com/brachka/login"
+      href="https://cromens.github.io/aura-github-pages"
       target="_blank"
       rel="noopener noreferrer"
-      title="AURA"
+      title="Открыть AURA"
     >AURA</a>
 
     <div class="sep"></div>
-
-    <button class="tool active" id="openBtn">
-
-      <svg viewBox="0 0 24 24">
-        <path d="M4 17.5V6.8A2.8 2.8 0 0 1 6.8 4h5.6"/>
-        <path d="M8 16l8-8 4 4-8 8H8z"/>
-        <path d="M14 4h6v6"/>
-      </svg>
-
-      <span>Обрезка</span>
-
-    </button>
 
     <button class="tool icon" id="cropBtn" title="Кадрирование">
 
@@ -945,8 +1039,7 @@ html.aura-embedded body{
       </svg>
 
     </button>
-
-    <div class="toolbar-spacer"></div>
+<div class="toolbar-spacer"></div>
 
     <button
       class="tool"
@@ -1069,98 +1162,11 @@ html.aura-embedded body{
 
 
     <!-- CROP PANEL -->
-
-    <div
-      class="panel crop-panel"
-      id="cropPanel"
-    >
-
+    <div class="panel crop-panel" id="cropPanel">
       <div class="crop-header">
-
         <strong>Кадрирование</strong>
-
-        <span>
-          Выберите формат или перетаскивайте рамку целиком / углы
-        </span>
-
+        <span class="crop-hint">Перетаскивайте рамку целиком или её углы</span>
       </div>
-
-      <div class="crop-grid">
-
-        <div class="range-row">
-
-          <span>X</span>
-
-          <input
-            id="xRange"
-            type="range"
-            min="0"
-            max="95"
-            value="0"
-          >
-
-          <div class="range-val" id="xVal">
-            0%
-          </div>
-
-        </div>
-
-        <div class="range-row">
-
-          <span>Y</span>
-
-          <input
-            id="yRange"
-            type="range"
-            min="0"
-            max="95"
-            value="0"
-          >
-
-          <div class="range-val" id="yVal">
-            0%
-          </div>
-
-        </div>
-
-        <div class="range-row">
-
-          <span>Ширина</span>
-
-          <input
-            id="wRange"
-            type="range"
-            min="5"
-            max="100"
-            value="100"
-          >
-
-          <div class="range-val" id="wVal">
-            100%
-          </div>
-
-        </div>
-
-        <div class="range-row">
-
-          <span>Высота</span>
-
-          <input
-            id="hRange"
-            type="range"
-            min="5"
-            max="100"
-            value="100"
-          >
-
-          <div class="range-val" id="hVal">
-            100%
-          </div>
-
-        </div>
-
-      </div>
-
       <div class="crop-presets">
         <button class="crop-preset" data-ratio="1:1">1:1</button>
         <button class="crop-preset" data-ratio="4:5">4:5</button>
@@ -1172,9 +1178,7 @@ html.aura-embedded body{
         <button class="crop-preset" data-ratio="2:3">2:3</button>
         <button class="crop-preset" data-ratio="free">Свободно</button>
       </div>
-
     </div>
-
 
     <!-- TIMELINE -->
 
@@ -1248,7 +1252,13 @@ html.aura-embedded body{
 
       </button>
 
-      <div class="time-current" id="currentTimeDisplay">00:00.0</div>
+
+      <div
+        class="current-time"
+        id="currentTime"
+        aria-live="polite"
+      >00:00.0</div>
+
 
       <div class="time-inputs">
 
@@ -1297,9 +1307,40 @@ html.aura-embedded body{
      НЕ используем SharedArrayBuffer.
 ====================================================== -->
 
-<script
-  src="./vendor/ffmpeg.js"
-></script>
+<script>
+/* AURA FFmpeg bootstrap: patch the 0.12.10 UMD worker chunk at runtime. */
+window.__AURA_FFMPEG_LIBRARY_PROMISE__ = null;
+async function __auraLoadFFmpegLibrary(){
+  if(window.FFmpegWASM?.FFmpeg) return window.FFmpegWASM.FFmpeg;
+  if(window.__AURA_FFMPEG_LIBRARY_PROMISE__) return window.__AURA_FFMPEG_LIBRARY_PROMISE__;
+  window.__AURA_FFMPEG_LIBRARY_PROMISE__ = (async()=>{
+    const url = new URL("./vendor/ffmpeg.js", document.baseURI).href;
+    const response = await fetch(url, {cache:"no-store"});
+    if(!response.ok) throw new Error("Не удалось загрузить vendor/ffmpeg.js: HTTP " + response.status);
+    let source = await response.text();
+    /* @ffmpeg/ffmpeg 0.12.x UMD hard-codes chunk 814 against its build-time path.
+       Replace that lookup with the runtime worker URL we provide to load(). */
+    const beforeWorkerPatch = source;
+    source = source.replace(/new URL\(e\.p\+e\.u\(814\),e\.b\)/g, "r.workerLoadURL");
+    /* A slightly more tolerant fallback for minifier formatting. */
+    source = source.replace(/new URL\(e\.p\+e\.u\(814\)[^)]*\)/g, "r.workerLoadURL");
+    if(source === beforeWorkerPatch && /814/.test(source)){
+      console.warn("AURA: FFmpeg UMD worker expression was not patched; continuing with original source.");
+    }
+    const blobURL = URL.createObjectURL(new Blob([source], {type:"text/javascript"}));
+    await new Promise((resolve,reject)=>{
+      const sc=document.createElement("script");
+      sc.src=blobURL;
+      sc.onload=()=>{ URL.revokeObjectURL(blobURL); resolve(); };
+      sc.onerror=()=>{ URL.revokeObjectURL(blobURL); reject(new Error("Не удалось выполнить patched vendor/ffmpeg.js")); };
+      document.head.appendChild(sc);
+    });
+    if(!window.FFmpegWASM?.FFmpeg) throw new Error("FFmpegWASM.FFmpeg не найден после загрузки vendor/ffmpeg.js");
+    return window.FFmpegWASM.FFmpeg;
+  })();
+  try{return await window.__AURA_FFMPEG_LIBRARY_PROMISE__;}catch(e){window.__AURA_FFMPEG_LIBRARY_PROMISE__=null;throw e;}
+}
+</script>
 
 
 <script>
@@ -1309,6 +1350,16 @@ html.aura-embedded body{
    AURA VIDEO EDITOR
    Same-origin FFmpeg WASM 0.12.10 for Wix iframe
 ===================================================== */
+
+
+/* =====================================================
+   AURA ENVIRONMENT
+===================================================== */
+(function(){
+  let embedded=false;
+  try{ embedded=window.self!==window.top; }catch(e){ embedded=true; }
+  if(embedded) document.documentElement.classList.add("aura-embedded");
+})();
 
 
 /* =====================================================
@@ -1356,9 +1407,6 @@ const fileInput =
 const chooseBtn =
   $("chooseBtn");
 
-const openBtn =
-  $("openBtn");
-
 const saveBtn =
   $("saveBtn");
 
@@ -1389,14 +1437,11 @@ const cropBox =
 const thumbs =
   $("thumbs");
 
-const playhead =
-  $("playhead");
-
-const currentTimeDisplay =
-  $("currentTimeDisplay");
-
 const film =
   $("film");
+
+const playhead =
+  $("playhead");
 
 const leftHandle =
   $("leftHandle");
@@ -1728,197 +1773,57 @@ async function loadFFmpeg(){
   if(ffmpegLoaded)
     return true;
 
-
   if(ffmpegLoading){
-
     while(ffmpegLoading){
-
-      await new Promise(
-        resolve =>
-          setTimeout(
-            resolve,
-            100
-          )
-      );
-
+      await new Promise(resolve => setTimeout(resolve,100));
     }
-
     return ffmpegLoaded;
   }
 
+  ffmpegLoading = true;
 
-  ffmpegLoading =
-    true;
-
-
-  engine.classList.add(
-    "show"
-  );
-
-  engine.textContent =
-    "Загрузка FFmpeg…";
-
-
-  setStatus(
-    "Загрузка видеодвижка…",
-    true
-  );
-
+  engine.classList.add("show");
+  engine.textContent = "Загрузка FFmpeg…";
+  setStatus("Загрузка видеодвижка…", true);
 
   try{
 
-    /*
-     * IMPORTANT:
-     *
-     * There is deliberately NO
-     * SharedArrayBuffer code here.
-     */
+    const FFmpegClass = await __auraLoadFFmpegLibrary();
+    if(!FFmpegClass) throw new Error("Класс FFmpeg не найден.");
+    ffmpeg = new FFmpegClass();
 
-    const FFmpegClass =
-      getFFmpegClass();
+    try{ ffmpeg.on("log", ({message})=>console.log("[AURA FFmpeg]",message)); }catch(e){}
+    try{ ffmpeg.on("progress", ({progress})=>{ if(isExporting && typeof progress==="number") setProgress(Math.min(95,Math.max(0,progress*95))); }); }catch(e){}
 
+    engine.textContent = "Загрузка ядра FFmpeg…";
 
-    if(!FFmpegClass){
+    const base = new URL("./vendor/", document.baseURI).href;
+    const coreURL = new URL("ffmpeg-core.js", base).href;
+    const wasmURL = new URL("ffmpeg-core.wasm", base).href;
+    const workerURL = new URL("814.ffmpeg.js", base).href;
 
-      throw new Error(
-        "Класс FFmpeg не найден. " +
-        "Проверьте загрузку ffmpeg.js."
-      );
-
-    }
-
-
-    ffmpeg =
-      new FFmpegClass();
-
-
-    /*
-     * Log.
-     */
-
-    try{
-
-      ffmpeg.on(
-        "log",
-        ({message}) => {
-
-          console.log(
-            "[AURA FFmpeg]",
-            message
-          );
-
-        }
-      );
-
-    }catch(e){}
-
-
-    /*
-     * Progress.
-     */
-
-    try{
-
-      ffmpeg.on(
-        "progress",
-        ({progress}) => {
-
-          if(
-            isExporting &&
-            typeof progress ===
-              "number"
-          ){
-
-            /*
-             * Keep 0-95 for FFmpeg.
-             */
-
-            setProgress(
-              Math.min(
-                95,
-                Math.max(
-                  0,
-                  progress * 95
-                )
-              )
-            );
-
-          }
-
-        }
-      );
-
-    }catch(e){}
-
-
-    /*
-     * Download core files.
-     *
-     * Using Blob URLs makes the loading
-     * more tolerant of cross-origin iframe
-     * restrictions.
-     */
-
-    engine.textContent =
-      "Загрузка ядра FFmpeg…";
-
-
-    const coreURL = "./vendor/ffmpeg-core.js";
-    const wasmURL = "./vendor/ffmpeg-core.wasm";
-
-
-    /*
-     * Load SINGLE THREAD core.
-     *
-     * There is NO workerURL here because
-     * we are NOT using core-mt.
-     */
+    console.log("AURA FFmpeg assets:",{coreURL,wasmURL,workerLoadURL:workerURL});
 
     await ffmpeg.load({
-      coreURL: coreURL,
-      wasmURL: wasmURL,
-      classWorkerURL: "./vendor/814.ffmpeg.js"
+      coreURL,
+      wasmURL,
+      workerLoadURL: workerURL
     });
 
+    ffmpegLoaded = true;
 
-    /*
-     * Core files are same-origin static files.
-     * Do not revoke them.
-     */
+    engine.textContent = "FFmpeg готов";
+    setStatus("", false);
 
-
-    ffmpegLoaded =
-      true;
-
-
-    engine.textContent =
-      "FFmpeg готов";
-
-
-    setStatus(
-      "",
-      false
-    );
-
-
-    setTimeout(
-      () => {
-
-        engine.classList.remove(
-          "show"
-        );
-
-      },
-      1200
-    );
-
+    setTimeout(() => {
+      engine.classList.remove("show");
+    },1200);
 
     console.log(
       "AURA: FFmpeg " +
       FFMPEG_VERSION +
-      " single-thread loaded."
+      " loaded successfully."
     );
-
 
     return true;
 
@@ -1929,33 +1834,30 @@ async function loadFFmpeg(){
       error
     );
 
+    ffmpegLoaded = false;
+    ffmpeg = null;
 
-    engine.textContent =
-      "Ошибка FFmpeg";
-
+    engine.textContent = "Ошибка FFmpeg";
 
     setStatus(
       "FFmpeg не удалось загрузить",
       true
     );
 
-
     alert(
       "Не удалось загрузить FFmpeg.\n\n" +
-      "Ошибка:\n" +
-      error.message +
+      "Причина:\n" +
+      (error && error.message
+        ? error.message
+        : String(error)) +
       "\n\n" +
-      "AURA использует single-thread FFmpeg и не требует SharedArrayBuffer."
+      "Попробуйте обновить страницу через Cmd + Shift + R."
     );
-
 
     return false;
 
   }finally{
-
-    ffmpegLoading =
-      false;
-
+    ffmpegLoading = false;
   }
 }
 
@@ -2070,13 +1972,9 @@ function loadVideoFile(file){
    FILE BUTTONS
 ===================================================== */
 
-openBtn.onclick =
 chooseBtn.onclick =
 () => {
-
-  if(isExporting)
-    return;
-
+  if(isExporting) return;
   fileInput.click();
 };
 
@@ -2256,6 +2154,7 @@ video.addEventListener(
 video.addEventListener(
   "timeupdate",
   () => {
+
     updatePlayhead();
 
     if(
@@ -2263,15 +2162,28 @@ video.addEventListener(
       video.currentTime >=
         endTime
     ){
+
       video.pause();
-      video.currentTime = startTime;
+
+      video.currentTime =
+        startTime;
+
       updatePlayhead();
+
     }
+
   }
 );
 
-video.addEventListener("seeking", updatePlayhead);
-video.addEventListener("loadeddata", updatePlayhead);
+video.addEventListener(
+  "seeking",
+  updatePlayhead
+);
+
+video.addEventListener(
+  "loadeddata",
+  updatePlayhead
+);
 
 
 function updatePlayIcon(){
@@ -2290,32 +2202,6 @@ function updatePlayIcon(){
 /* =====================================================
    TRIM TIMELINE
 ===================================================== */
-
-function updatePlayhead(){
-  if(!playhead) return;
-  const time = Number(video.currentTime) || 0;
-  if(currentTimeDisplay) currentTimeDisplay.textContent = formatTime(time);
-  if(!duration){
-    playhead.style.left = "0%";
-    return;
-  }
-  const percent = Math.max(0, Math.min(100, (time / duration) * 100));
-  playhead.style.left = percent + "%";
-  playhead.title = "Текущий кадр · " + formatTime(time);
-}
-
-function seekTimeline(clientX, clampToTrim){
-  if(!duration) return;
-  const rect = film.getBoundingClientRect();
-  if(!rect.width) return;
-  let percent = (clientX - rect.left) / rect.width;
-  percent = Math.max(0, Math.min(1, percent));
-  let time = percent * duration;
-  if(clampToTrim) time = Math.max(startTime, Math.min(endTime, time));
-  video.pause();
-  video.currentTime = time;
-  updatePlayhead();
-}
 
 function updateTrimUI(){
 
@@ -2352,15 +2238,13 @@ function updateTrimUI(){
 
 
   leftHandle.style.left =
-    "calc(" +
     left * 100 +
-    "% - 6px)";
+    "%";
 
 
   rightHandle.style.left =
-    "calc(" +
     right * 100 +
-    "% - 6px)";
+    "%";
 
 
   startInput.value =
@@ -2434,9 +2318,13 @@ function setTrim(
 
   updateTrimUI();
 
+  /* Сразу показываем кадр на новом положении ручки */
   video.pause();
   video.currentTime =
-    side === "left" ? startTime : endTime;
+    side === "left"
+      ? startTime
+      : endTime;
+
   updatePlayhead();
 }
 
@@ -2501,41 +2389,97 @@ film.addEventListener(
   "pointerdown",
   event => {
 
-    if(!duration)
+    if(!duration || isExporting)
       return;
 
     if(
-      event.target.classList.contains(
-        "trim-handle"
-      )
+      event.target.closest(".trim-handle") ||
+      event.target.closest(".playhead")
     )
       return;
 
+    event.preventDefault();
 
-    const rect =
-      film.getBoundingClientRect();
-
-
-    const percent =
-      (
-        event.clientX -
-        rect.left
-      ) /
-      rect.width;
-
-
-    video.currentTime =
-      Math.max(
-        startTime,
-        Math.min(
-          endTime,
-          percent *
-          duration
-        )
-      );
+    seekFromTimeline(event.clientX, false);
 
   }
 );
+
+function seekFromTimeline(clientX, keepTrimBounds){
+  if(!duration) return;
+
+  const rect = film.getBoundingClientRect();
+  if(!rect.width) return;
+
+  let percent =
+    (clientX - rect.left) / rect.width;
+
+  percent =
+    Math.max(0, Math.min(1, percent));
+
+  let time = percent * duration;
+
+  if(keepTrimBounds){
+    time = Math.max(
+      startTime,
+      Math.min(endTime, time)
+    );
+  }
+
+  video.pause();
+  video.currentTime = time;
+  updatePlayhead();
+}
+
+playhead.addEventListener(
+  "pointerdown",
+  event => {
+    if(!duration || isExporting) return;
+    event.preventDefault();
+    event.stopPropagation();
+
+    pointerDrag = {
+      type:"playhead"
+    };
+
+    video.pause();
+
+    document.addEventListener(
+      "pointermove",
+      pointerMove
+    );
+
+    document.addEventListener(
+      "pointerup",
+      pointerUp,
+      { once:true }
+    );
+  }
+);
+
+function updatePlayhead(){
+  const current = Number(video.currentTime) || 0;
+  const currentTimeEl = document.getElementById("currentTime");
+  if(currentTimeEl) currentTimeEl.textContent = formatTime(current);
+  if(!playhead) return;
+
+  if(!duration){
+    playhead.style.left = "0%";
+    return;
+  }
+
+  const percent =
+    Math.max(0, Math.min(100,
+      (video.currentTime / duration) * 100
+    ));
+
+  playhead.style.left =
+    percent + "%";
+
+  playhead.title =
+    "Текущий кадр · " +
+    formatTime(video.currentTime);
+}
 
 
 /* =====================================================
@@ -2615,13 +2559,24 @@ function pointerMove(event){
     return;
   }
 
+  if(
+    pointerDrag.type ===
+    "playhead"
+  ){
 
-  if(pointerDrag.type === "playhead"){
-    seekTimeline(event.clientX, false);
+    seekFromTimeline(
+      event.clientX,
+      false
+    );
+
     return;
   }
 
-  if(pointerDrag.type === "cropMove"){
+  if(
+    pointerDrag.type ===
+    "cropMove"
+  ){
+
     updateCropMove(event);
     return;
   }
@@ -2656,197 +2611,65 @@ function pointerUp(){
    CROP
 ===================================================== */
 
+function clampCrop(){
+  crop.w=Math.max(5,Math.min(100,crop.w));
+  crop.h=Math.max(5,Math.min(100,crop.h));
+  crop.x=Math.max(0,Math.min(100-crop.w,crop.x));
+  crop.y=Math.max(0,Math.min(100-crop.h,crop.y));
+}
+
 function updateCropUI(){
-
-  $("xRange").value =
-    crop.x;
-
-  $("yRange").value =
-    crop.y;
-
-  $("wRange").value =
-    crop.w;
-
-  $("hRange").value =
-    crop.h;
-
-
-  $("xVal").textContent =
-    Math.round(crop.x) +
-    "%";
-
-  $("yVal").textContent =
-    Math.round(crop.y) +
-    "%";
-
-  $("wVal").textContent =
-    Math.round(crop.w) +
-    "%";
-
-  $("hVal").textContent =
-    Math.round(crop.h) +
-    "%";
-
-
+  clampCrop();
   positionCropBox();
 }
 
-
-function setCropValue(
-  property,
-  value
-){
-
-  crop[property] =
-    Number(value);
-
-
-  if(property === "x"){
-
-    crop.x =
-      Math.min(
-        crop.x,
-        100 - crop.w
-      );
-
-  }
-
-
-  if(property === "y"){
-
-    crop.y =
-      Math.min(
-        crop.y,
-        100 - crop.h
-      );
-
-  }
-
-
-  if(property === "w"){
-
-    crop.w =
-      Math.min(
-        crop.w,
-        100 - crop.x
-      );
-
-  }
-
-
-  if(property === "h"){
-
-    crop.h =
-      Math.min(
-        crop.h,
-        100 - crop.y
-      );
-
-  }
-
-
-  updateCropUI();
-}
-
-
-["x","y","w","h"]
-.forEach(
-  property => {
-
-    $(property + "Range")
-      .addEventListener(
-        "input",
-        event => {
-
-          setCropValue(
-            property,
-            event.target.value
-          );
-
-        }
-      );
-
-  }
-);
-
-
 function setCropPreset(ratioText){
-  if(ratioText === "free") {
-    document.querySelectorAll(".crop-preset").forEach(b => b.classList.toggle("active", b.dataset.ratio === "free"));
-    return;
+  if(!video.videoWidth || !video.videoHeight) return;
+  document.querySelectorAll(".crop-preset").forEach(b=>b.classList.remove("active"));
+  const selected=document.querySelector(`.crop-preset[data-ratio="${ratioText}"]`);
+  if(selected) selected.classList.add("active");
+
+  if(ratioText==="free"){
+    cropMode=true;
+    return updateCropUI();
   }
 
-  const parts = ratioText.split(":").map(Number);
-  if(parts.length !== 2 || !parts[0] || !parts[1] || !video.videoWidth || !video.videoHeight) return;
+  const [rw,rh]=ratioText.split(":").map(Number);
+  const videoRatio=video.videoWidth/video.videoHeight;
+  let w=100,h=100;
 
-  const target = parts[0] / parts[1];
-  const videoRatio = video.videoWidth / video.videoHeight;
-
-  if(videoRatio >= target){
-    crop.h = 100;
-    crop.w = Math.max(5, Math.min(100, 100 * videoRatio / target));
-    if(crop.w > 100) { crop.w = 100 * target / videoRatio; crop.h = 100; }
+  if(videoRatio>rw/rh){
+    w=(videoRatio/(rw/rh))*100;
+    if(w>100){w=100;h=(videoRatio*rh/rw)?100:100;}
+    // Fit desired ratio inside the video
+    h=100;
+    w=(rw/rh)/videoRatio*100;
   }else{
-    crop.w = 100;
-    crop.h = Math.max(5, Math.min(100, 100 * target / videoRatio));
+    w=100;
+    h=videoRatio/(rw/rh)*100;
   }
-
-  /* Correct the calculation using displayed percentages. */
-  if(videoRatio >= target){
-    crop.w = 100 * target / videoRatio;
-    crop.h = 100;
-  }else{
-    crop.w = 100;
-    crop.h = 100 * videoRatio / target;
-  }
-
-  crop.x = (100 - crop.w) / 2;
-  crop.y = (100 - crop.h) / 2;
+  w=Math.max(5,Math.min(100,w));
+  h=Math.max(5,Math.min(100,h));
+  crop.w=w; crop.h=h;
+  crop.x=(100-w)/2; crop.y=(100-h)/2;
   updateCropUI();
-  document.querySelectorAll(".crop-preset").forEach(b => b.classList.toggle("active", b.dataset.ratio === ratioText));
 }
 
-document.querySelectorAll(".crop-preset").forEach(btn => {
-  btn.addEventListener("click", () => {
+document.querySelectorAll(".crop-preset").forEach(btn=>{
+  btn.addEventListener("click",()=>{
     if(!sourceFile) return;
     setCropPreset(btn.dataset.ratio);
   });
 });
 
-
-cropBtn.onclick =
-() => {
-
-  if(!sourceFile)
-    return;
-
-
-  cropMode =
-    !cropMode;
-
-
-  cropBtn.classList.toggle(
-    "active",
-    cropMode
-  );
-
-
-  cropPanel.classList.toggle(
-    "show",
-    cropMode
-  );
-
-
-  cropBox.style.display =
-    cropMode
-      ? "block"
-      : "none";
-
-
-  if(cropMode)
-    positionCropBox();
+cropBtn.onclick=()=>{
+  if(!sourceFile) return;
+  cropMode=!cropMode;
+  cropBtn.classList.toggle("active",cropMode);
+  cropPanel.classList.toggle("show",cropMode);
+  cropBox.style.display=cropMode?"block":"none";
+  if(cropMode) positionCropBox();
 };
-
 
 /* =====================================================
    CROP POSITION
@@ -2928,186 +2751,68 @@ window.addEventListener(
 
 
 /* =====================================================
-   CROP HANDLES
+   CROP HANDLES + MOVE WHOLE GRID
 ===================================================== */
 
-document
-  .querySelectorAll(
-    ".handle"
-  )
-  .forEach(
-    handle => {
+document.querySelectorAll(".handle").forEach(handle=>{
+  handle.addEventListener("pointerdown",event=>{
+    if(isExporting || !cropMode) return;
+    event.preventDefault(); event.stopPropagation();
+    pointerDrag={type:"crop",handle:handle.dataset.h};
+    document.addEventListener("pointermove",pointerMove);
+    document.addEventListener("pointerup",pointerUp,{once:true});
+  });
+});
 
-      handle.addEventListener(
-        "pointerdown",
-        event => {
+cropBox.addEventListener("pointerdown",event=>{
+  if(isExporting || !cropMode) return;
+  if(event.target.classList.contains("handle")) return;
+  event.preventDefault(); event.stopPropagation();
+  pointerDrag={
+    type:"cropMove",
+    startX:event.clientX,
+    startY:event.clientY,
+    cropX:crop.x,cropY:crop.y
+  };
+  document.addEventListener("pointermove",pointerMove);
+  document.addEventListener("pointerup",pointerUp,{once:true});
+});
 
-          if(isExporting)
-            return;
+function updateCropFromPointer(event){
+  const rect=video.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  let x=(event.clientX-rect.left)/rect.width*100;
+  let y=(event.clientY-rect.top)/rect.height*100;
+  x=Math.max(0,Math.min(100,x));
+  y=Math.max(0,Math.min(100,y));
 
-
-          event.preventDefault();
-
-          event.stopPropagation();
-
-
-          pointerDrag = {
-            type:"crop",
-            handle:
-              handle.dataset.h
-          };
-
-
-          document.addEventListener(
-            "pointermove",
-            pointerMove
-          );
-
-
-          document.addEventListener(
-            "pointerup",
-            pointerUp,
-            {
-              once:true
-            }
-          );
-
-        }
-      );
-
-    }
-  );
-
-
-function updateCropFromPointer(
-  event
-){
-
-  const rect =
-    video.getBoundingClientRect();
-
-
-  if(
-    !rect.width ||
-    !rect.height
-  )
-    return;
-
-
-  let x =
-    (
-      event.clientX -
-      rect.left
-    ) /
-    rect.width *
-    100;
-
-
-  let y =
-    (
-      event.clientY -
-      rect.top
-    ) /
-    rect.height *
-    100;
-
-
-  x =
-    Math.max(
-      0,
-      Math.min(
-        100,
-        x
-      )
-    );
-
-
-  y =
-    Math.max(
-      0,
-      Math.min(
-        100,
-        y
-      )
-    );
-
-
-  const handle =
-    pointerDrag.handle;
-
-  const minimum =
-    5;
-
-
+  const handle=pointerDrag.handle, minimum=5;
   if(handle.includes("l")){
-
-    const right =
-      crop.x +
-      crop.w;
-
-
-    crop.x =
-      Math.min(
-        x,
-        right - minimum
-      );
-
-
-    crop.w =
-      right -
-      crop.x;
+    const right=crop.x+crop.w;
+    crop.x=Math.min(x,right-minimum); crop.w=right-crop.x;
   }
-
-
   if(handle.includes("r")){
-
-    crop.w =
-      Math.max(
-        minimum,
-        Math.min(
-          100 - crop.x,
-          x - crop.x
-        )
-      );
+    crop.w=Math.max(minimum,Math.min(100-crop.x,x-crop.x));
   }
-
-
   if(handle.includes("t")){
-
-    const bottom =
-      crop.y +
-      crop.h;
-
-
-    crop.y =
-      Math.min(
-        y,
-        bottom - minimum
-      );
-
-
-    crop.h =
-      bottom -
-      crop.y;
+    const bottom=crop.y+crop.h;
+    crop.y=Math.min(y,bottom-minimum); crop.h=bottom-crop.y;
   }
-
-
   if(handle.includes("b")){
-
-    crop.h =
-      Math.max(
-        minimum,
-        Math.min(
-          100 - crop.y,
-          y - crop.y
-        )
-      );
+    crop.h=Math.max(minimum,Math.min(100-crop.y,y-crop.y));
   }
-
-
   updateCropUI();
 }
 
+function updateCropMove(event){
+  const rect=video.getBoundingClientRect();
+  if(!rect.width || !rect.height) return;
+  const dx=(event.clientX-pointerDrag.startX)/rect.width*100;
+  const dy=(event.clientY-pointerDrag.startY)/rect.height*100;
+  crop.x=Math.max(0,Math.min(100-crop.w,pointerDrag.cropX+dx));
+  crop.y=Math.max(0,Math.min(100-crop.h,pointerDrag.cropY+dy));
+  updateCropUI();
+}
 
 /* =====================================================
    ROTATE / MIRROR / MUTE
@@ -3589,8 +3294,6 @@ async function exportVideo(){
   chooseBtn.disabled =
     true;
 
-  openBtn.disabled =
-    true;
 
   playBtn.disabled =
     true;
@@ -3964,8 +3667,6 @@ async function exportVideo(){
     chooseBtn.disabled =
       false;
 
-    openBtn.disabled =
-      false;
 
     playBtn.disabled =
       !sourceFile;
@@ -4230,21 +3931,32 @@ async function smartDownload(){
   if(isEmbedded){
 
     try{
-      const filename = fileBaseName(sourceFile && sourceFile.name) + "_edited.mp4";
-      /* Wix parent receives the Blob and performs the real browser download. */
-      window.parent.postMessage({
-        type:"AURA_DOWNLOAD",
-        filename:filename,
-        blob:resultBlob
-      }, "*");
 
-      setStatus("Скачивание передано Wix…", true);
+      downloadWithAnchor();
+
+
+      setStatus(
+        "Скачивание запущено",
+        true
+      );
+
+
       return;
+
     }catch(error){
-      console.log("AURA Wix postMessage download failed:", error);
-      try{ downloadWithAnchor(); }catch(e){}
+
+      console.log(
+        "AURA iframe download failed:",
+        error
+      );
+
+
+      openResult();
+
       return;
+
     }
+
   }
 
 
