@@ -8,18 +8,7 @@
 
 <style>
 :root{
-  /*
-   * PAGE BACKGROUND
-   *
-   * When AURA is opened directly:
-   *   dark blue background.
-   *
-   * When AURA is embedded in a Wix HTML iframe:
-   *   JavaScript adds .aura-embedded and the
-   *   background becomes fully transparent.
-   */
   --bg:#071426;
-
   --panel:rgba(40,40,40,.16);
   --border:rgba(255,255,255,.07);
   --button:#282828;
@@ -55,18 +44,6 @@ body{
   font-size:12px;
 }
 
-/*
- * WIX / IFRAME MODE
- *
- * The editor itself remains visible, but the page
- * behind the glass panels becomes transparent so
- * the Wix page background can show through.
- */
-html.aura-embedded,
-html.aura-embedded body{
-  background:transparent !important;
-}
-
 button,
 input{
   font-family:inherit;
@@ -96,6 +73,10 @@ button{
   border-radius:15px;
   min-width:0;
 }
+
+
+.aura-brand{height:32px;min-width:72px;padding:0 12px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:#fff;text-decoration:none;font-size:14px;font-weight:800;letter-spacing:.16em;background:rgba(40,40,40,.15);border:1px solid rgba(110,110,110,.15);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px);}
+.aura-brand:hover{background:rgba(40,40,40,.22);color:#fff;}
 
 /* =====================================================
    TOOLBAR
@@ -708,11 +689,192 @@ video{
     display:none;
   }
 
+  .time-current{
+    min-width:64px;
+    padding:0 8px;
+  }
+
   .save{
     min-width:100px;
   }
 }
+
+/* =====================================================
+   AURA GLASS / ADAPTIVE BACKGROUND
+===================================================== */
+html.aura-embedded,
+html.aura-embedded body{
+  background:transparent !important;
+}
+
+.panel,
+.preview-panel,
+.timeline{
+  background:rgba(40,40,40,.15) !important;
+  border:1px solid rgba(110,110,110,.15);
+  backdrop-filter:blur(15px) saturate(120%);
+  -webkit-backdrop-filter:blur(15px) saturate(120%);
+}
+
+.tool,
+.play,
+.time-inputs{
+  background:rgba(40,40,40,.15) !important;
+  color:#6E6E6E;
+  border:1px solid rgba(110,110,110,.15);
+  backdrop-filter:blur(15px) saturate(120%);
+  -webkit-backdrop-filter:blur(15px) saturate(120%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
+}
+
+.tool:hover,
+.play:hover{
+  background:rgba(40,40,40,.22) !important;
+  color:#fff;
+}
+
+#chooseBtn,
+.save,
+.download-main{
+  background:#053A99 !important;
+  color:#fff !important;
+}
+
+.time-current{
+  min-width:72px;
+  height:100%;
+  padding:0 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:11px;
+  background:rgba(40,40,40,.15);
+  border:1px solid rgba(110,110,110,.15);
+  backdrop-filter:blur(15px) saturate(120%);
+  -webkit-backdrop-filter:blur(15px) saturate(120%);
+  color:#fff;
+  font-variant-numeric:tabular-nums;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+
+/* The thumbnail strip stays dark so the video frames remain readable. */
+.film{
+  background:rgba(2,3,5,.38);
+}
+
+/* Larger, easier trim handles */
+.trim-handle{
+  top:-2px;
+  bottom:-2px;
+  width:20px;
+  transform:translateX(-50%);
+  border-radius:7px;
+  background:#1677ff;
+  box-shadow:0 0 0 1px rgba(255,255,255,.18),0 0 10px rgba(22,119,255,.45);
+  cursor:ew-resize;
+  z-index:20;
+}
+
+.trim-handle:after{
+  left:50%;
+  top:18%;
+  bottom:18%;
+  width:4px;
+  transform:translateX(-50%);
+  background:#fff;
+  box-shadow:0 0 7px rgba(255,255,255,.5);
+}
+
+/* Real-time main playhead */
+.playhead{
+  position:absolute;
+  top:-3px;
+  bottom:-3px;
+  width:18px;
+  transform:translateX(-50%);
+  z-index:35;
+  cursor:ew-resize;
+  touch-action:none;
+}
+.playhead::before{
+  content:"";
+  position:absolute;
+  left:50%; top:0; bottom:0;
+  width:2px;
+  transform:translateX(-50%);
+  background:#fff;
+  box-shadow:0 0 0 1px rgba(0,0,0,.35),0 0 9px rgba(255,255,255,.7);
+}
+.playhead::after{
+  content:"";
+  position:absolute;
+  left:50%; top:0;
+  width:9px; height:9px;
+  transform:translate(-50%,-25%);
+  border-radius:50%;
+  background:#fff;
+  box-shadow:0 0 0 2px #1677ff,0 0 10px rgba(22,119,255,.65);
+}
+
+/* Bigger crop corners */
+.handle{
+  width:22px; height:22px;
+  background:rgba(255,255,255,.98);
+  border:2px solid #1677ff;
+  border-radius:6px;
+  box-shadow:0 2px 10px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.28);
+  touch-action:none;
+}
+.handle::after{
+  content:""; position:absolute; inset:5px; border-radius:3px; background:#1677ff;
+}
+.handle.tl{left:-11px;top:-11px}
+.handle.tr{right:-11px;top:-11px}
+.handle.bl{left:-11px;bottom:-11px}
+.handle.br{right:-11px;bottom:-11px}
+
+/* Presets instead of four numeric crop sliders */
+.crop-grid{display:none !important;}
+.crop-presets{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.crop-preset{
+  border:1px solid rgba(110,110,110,.15);
+  background:rgba(40,40,40,.15);
+  color:#6E6E6E;
+  border-radius:9px;
+  padding:8px 11px;
+  cursor:pointer;
+  font-size:10px;
+  font-weight:700;
+  transition:.15s ease;
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
+}
+.crop-preset:hover,.crop-preset.active{background:#053A99;color:#fff;border-color:rgba(255,255,255,.16);}
+
+.download-panel{
+  background:rgba(5,8,13,.55);
+  backdrop-filter:blur(15px) saturate(125%);
+  -webkit-backdrop-filter:blur(15px) saturate(125%);
+}
+
+/* Detect iframe before first paint */
 </style>
+<script>
+(function(){
+  try{
+    if(window.self !== window.top){
+      document.documentElement.classList.add("aura-embedded");
+      console.log("AURA: embedded iframe mode detected — transparent page background active.");
+    }else{
+      console.log("AURA: standalone mode detected — dark blue page background is active.");
+    }
+  }catch(e){
+    document.documentElement.classList.add("aura-embedded");
+  }
+})();
+</script>
 </head>
 
 <body>
@@ -724,6 +886,16 @@ video{
   ================================================== -->
 
   <div class="panel toolbar">
+
+    <a
+      class="aura-brand"
+      href="https://cromens.wixstudio.com/brachka/login"
+      target="_blank"
+      rel="noopener noreferrer"
+      title="AURA"
+    >AURA</a>
+
+    <div class="sep"></div>
 
     <button class="tool active" id="openBtn">
 
@@ -770,17 +942,6 @@ video{
       <svg viewBox="0 0 24 24">
         <path d="M4 10v4h4l5 4V6l-5 4H4z"/>
         <path d="M17 9l4 6M21 9l-4 6"/>
-      </svg>
-
-    </button>
-
-    <div class="sep"></div>
-
-    <button class="tool icon" id="resetBtn" title="Сбросить">
-
-      <svg viewBox="0 0 24 24">
-        <path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/>
-        <path d="M4 4v4.5h4.5"/>
       </svg>
 
     </button>
@@ -900,13 +1061,6 @@ video{
             Открыть видео
           </button>
 
-          <button
-            class="download-close"
-            id="closeDownloadBtn"
-          >
-            Закрыть
-          </button>
-
         </div>
 
       </div>
@@ -926,7 +1080,7 @@ video{
         <strong>Кадрирование</strong>
 
         <span>
-          Можно менять размер прямо мышью
+          Выберите формат или перетаскивайте рамку целиком / углы
         </span>
 
       </div>
@@ -1007,6 +1161,18 @@ video{
 
       </div>
 
+      <div class="crop-presets">
+        <button class="crop-preset" data-ratio="1:1">1:1</button>
+        <button class="crop-preset" data-ratio="4:5">4:5</button>
+        <button class="crop-preset" data-ratio="3:4">3:4</button>
+        <button class="crop-preset" data-ratio="4:3">4:3</button>
+        <button class="crop-preset" data-ratio="16:9">16:9</button>
+        <button class="crop-preset" data-ratio="9:16">9:16</button>
+        <button class="crop-preset" data-ratio="3:2">3:2</button>
+        <button class="crop-preset" data-ratio="2:3">2:3</button>
+        <button class="crop-preset" data-ratio="free">Свободно</button>
+      </div>
+
     </div>
 
 
@@ -1019,6 +1185,12 @@ video{
         <div
           class="thumbs"
           id="thumbs"
+        ></div>
+
+        <div
+          class="playhead"
+          id="playhead"
+          title="Текущий кадр"
         ></div>
 
         <div
@@ -1076,6 +1248,7 @@ video{
 
       </button>
 
+      <div class="time-current" id="currentTimeDisplay">00:00.0</div>
 
       <div class="time-inputs">
 
@@ -1131,59 +1304,6 @@ video{
 
 <script>
 "use strict";
-
-/* =====================================================
-   ADAPTIVE BACKGROUND: DIRECT / WIX IFRAME
-===================================================== */
-
-/*
- * Detect whether AURA is running inside an iframe.
- *
- * Direct GitHub Pages:
- *   dark blue page background.
- *
- * Wix HTML Component:
- *   completely transparent page background.
- *
- * The try/catch also covers sandboxed iframe
- * environments where reading window.top may throw.
- */
-(function detectAURAEmbedding(){
-
-  let embedded = false;
-
-  try{
-    embedded = window.self !== window.top;
-  }catch(error){
-    embedded = true;
-  }
-
-  if(embedded){
-
-    document.documentElement.classList.add(
-      "aura-embedded"
-    );
-
-    if(document.body){
-      document.body.classList.add(
-        "aura-embedded"
-      );
-    }
-
-    console.log(
-      "AURA: Wix/iframe mode detected — page background is transparent."
-    );
-
-  }else{
-
-    console.log(
-      "AURA: standalone mode detected — dark blue page background is active."
-    );
-
-  }
-
-})();
-
 
 /* =====================================================
    AURA VIDEO EDITOR
@@ -1248,9 +1368,6 @@ const playBtn =
 const playIcon =
   $("playIcon");
 
-const resetBtn =
-  $("resetBtn");
-
 const rotateBtn =
   $("rotateBtn");
 
@@ -1271,6 +1388,12 @@ const cropBox =
 
 const thumbs =
   $("thumbs");
+
+const playhead =
+  $("playhead");
+
+const currentTimeDisplay =
+  $("currentTimeDisplay");
 
 const film =
   $("film");
@@ -1310,9 +1433,6 @@ const downloadBtn =
 
 const openResultBtn =
   $("openResultBtn");
-
-const closeDownloadBtn =
-  $("closeDownloadBtn");
 
 
 /* =====================================================
@@ -1743,10 +1863,8 @@ async function loadFFmpeg(){
       "Загрузка ядра FFmpeg…";
 
 
-    const AURA_BASE_URL = new URL("./", window.location.href).href;
-    const coreURL = new URL("vendor/ffmpeg-core.js", AURA_BASE_URL).href;
-    const wasmURL = new URL("vendor/ffmpeg-core.wasm", AURA_BASE_URL).href;
-    const classWorkerURL = new URL("vendor/814.ffmpeg.js", AURA_BASE_URL).href;
+    const coreURL = "./vendor/ffmpeg-core.js";
+    const wasmURL = "./vendor/ffmpeg-core.wasm";
 
 
     /*
@@ -1759,7 +1877,7 @@ async function loadFFmpeg(){
     await ffmpeg.load({
       coreURL: coreURL,
       wasmURL: wasmURL,
-      classWorkerURL: classWorkerURL
+      classWorkerURL: "./vendor/814.ffmpeg.js"
     });
 
 
@@ -2015,6 +2133,7 @@ video.addEventListener(
 
 
     updateTrimUI();
+    updatePlayhead();
 
     updateScale();
 
@@ -2137,22 +2256,22 @@ video.addEventListener(
 video.addEventListener(
   "timeupdate",
   () => {
+    updatePlayhead();
 
     if(
       endTime > 0 &&
       video.currentTime >=
         endTime
     ){
-
       video.pause();
-
-      video.currentTime =
-        startTime;
-
+      video.currentTime = startTime;
+      updatePlayhead();
     }
-
   }
 );
+
+video.addEventListener("seeking", updatePlayhead);
+video.addEventListener("loadeddata", updatePlayhead);
 
 
 function updatePlayIcon(){
@@ -2171,6 +2290,32 @@ function updatePlayIcon(){
 /* =====================================================
    TRIM TIMELINE
 ===================================================== */
+
+function updatePlayhead(){
+  if(!playhead) return;
+  const time = Number(video.currentTime) || 0;
+  if(currentTimeDisplay) currentTimeDisplay.textContent = formatTime(time);
+  if(!duration){
+    playhead.style.left = "0%";
+    return;
+  }
+  const percent = Math.max(0, Math.min(100, (time / duration) * 100));
+  playhead.style.left = percent + "%";
+  playhead.title = "Текущий кадр · " + formatTime(time);
+}
+
+function seekTimeline(clientX, clampToTrim){
+  if(!duration) return;
+  const rect = film.getBoundingClientRect();
+  if(!rect.width) return;
+  let percent = (clientX - rect.left) / rect.width;
+  percent = Math.max(0, Math.min(1, percent));
+  let time = percent * duration;
+  if(clampToTrim) time = Math.max(startTime, Math.min(endTime, time));
+  video.pause();
+  video.currentTime = time;
+  updatePlayhead();
+}
 
 function updateTrimUI(){
 
@@ -2227,6 +2372,8 @@ function updateTrimUI(){
     formatTime(
       endTime
     );
+
+  updatePlayhead();
 }
 
 
@@ -2286,6 +2433,11 @@ function setTrim(
 
 
   updateTrimUI();
+
+  video.pause();
+  video.currentTime =
+    side === "left" ? startTime : endTime;
+  updatePlayhead();
 }
 
 
@@ -2407,6 +2559,9 @@ startInput.addEventListener(
 
 
     updateTrimUI();
+    video.pause();
+    video.currentTime = startTime;
+    updatePlayhead();
 
   }
 );
@@ -2429,6 +2584,9 @@ endInput.addEventListener(
 
 
     updateTrimUI();
+    video.pause();
+    video.currentTime = endTime;
+    updatePlayhead();
 
   }
 );
@@ -2457,6 +2615,16 @@ function pointerMove(event){
     return;
   }
 
+
+  if(pointerDrag.type === "playhead"){
+    seekTimeline(event.clientX, false);
+    return;
+  }
+
+  if(pointerDrag.type === "cropMove"){
+    updateCropMove(event);
+    return;
+  }
 
   if(
     pointerDrag.type !==
@@ -2600,6 +2768,50 @@ function setCropValue(
 
   }
 );
+
+
+function setCropPreset(ratioText){
+  if(ratioText === "free") {
+    document.querySelectorAll(".crop-preset").forEach(b => b.classList.toggle("active", b.dataset.ratio === "free"));
+    return;
+  }
+
+  const parts = ratioText.split(":").map(Number);
+  if(parts.length !== 2 || !parts[0] || !parts[1] || !video.videoWidth || !video.videoHeight) return;
+
+  const target = parts[0] / parts[1];
+  const videoRatio = video.videoWidth / video.videoHeight;
+
+  if(videoRatio >= target){
+    crop.h = 100;
+    crop.w = Math.max(5, Math.min(100, 100 * videoRatio / target));
+    if(crop.w > 100) { crop.w = 100 * target / videoRatio; crop.h = 100; }
+  }else{
+    crop.w = 100;
+    crop.h = Math.max(5, Math.min(100, 100 * target / videoRatio));
+  }
+
+  /* Correct the calculation using displayed percentages. */
+  if(videoRatio >= target){
+    crop.w = 100 * target / videoRatio;
+    crop.h = 100;
+  }else{
+    crop.w = 100;
+    crop.h = 100 * videoRatio / target;
+  }
+
+  crop.x = (100 - crop.w) / 2;
+  crop.y = (100 - crop.h) / 2;
+  updateCropUI();
+  document.querySelectorAll(".crop-preset").forEach(b => b.classList.toggle("active", b.dataset.ratio === ratioText));
+}
+
+document.querySelectorAll(".crop-preset").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if(!sourceFile) return;
+    setCropPreset(btn.dataset.ratio);
+  });
+});
 
 
 cropBtn.onclick =
@@ -2994,150 +3206,6 @@ function applyPreviewTransform(){
   video.muted =
     muted;
 }
-
-
-/* =====================================================
-   RESET
-===================================================== */
-
-resetBtn.onclick =
-() => {
-
-  if(isExporting)
-    return;
-
-
-  revokeURL(
-    sourceURL
-  );
-
-  revokeURL(
-    resultURL
-  );
-
-
-  sourceFile =
-    null;
-
-  sourceURL =
-    null;
-
-  resultURL =
-    null;
-
-  resultBlob =
-    null;
-
-  duration =
-    0;
-
-  startTime =
-    0;
-
-  endTime =
-    0;
-
-  rotate =
-    0;
-
-  mirror =
-    false;
-
-  muted =
-    false;
-
-
-  crop.x =
-    0;
-
-  crop.y =
-    0;
-
-  crop.w =
-    100;
-
-  crop.h =
-    100;
-
-
-  cropMode =
-    false;
-
-
-  video.pause();
-
-  video.removeAttribute(
-    "src"
-  );
-
-  video.load();
-
-
-  empty.style.display =
-    "flex";
-
-
-  thumbs.innerHTML =
-    "";
-
-
-  fileInfo.textContent =
-    "";
-
-
-  saveBtn.disabled =
-    true;
-
-  playBtn.disabled =
-    true;
-
-
-  cropBtn.classList.remove(
-    "active"
-  );
-
-  mirrorBtn.classList.remove(
-    "active"
-  );
-
-  muteBtn.classList.remove(
-    "active"
-  );
-
-
-  cropPanel.classList.remove(
-    "show"
-  );
-
-
-  cropBox.style.display =
-    "none";
-
-
-  downloadPanel.classList.remove(
-    "show"
-  );
-
-
-  setProgress(0);
-
-  setStatus(
-    "",
-    false
-  );
-
-
-  updateScale();
-
-  updateTrimUI();
-
-  updateCropUI();
-
-  applyPreviewTransform();
-
-  updatePlayIcon();
-
-};
 
 
 /* =====================================================
@@ -4162,32 +4230,21 @@ async function smartDownload(){
   if(isEmbedded){
 
     try{
+      const filename = fileBaseName(sourceFile && sourceFile.name) + "_edited.mp4";
+      /* Wix parent receives the Blob and performs the real browser download. */
+      window.parent.postMessage({
+        type:"AURA_DOWNLOAD",
+        filename:filename,
+        blob:resultBlob
+      }, "*");
 
-      downloadWithAnchor();
-
-
-      setStatus(
-        "Скачивание запущено",
-        true
-      );
-
-
+      setStatus("Скачивание передано Wix…", true);
       return;
-
     }catch(error){
-
-      console.log(
-        "AURA iframe download failed:",
-        error
-      );
-
-
-      openResult();
-
+      console.log("AURA Wix postMessage download failed:", error);
+      try{ downloadWithAnchor(); }catch(e){}
       return;
-
     }
-
   }
 
 
@@ -4296,19 +4353,6 @@ openResultBtn.onclick =
 };
 
 
-closeDownloadBtn.onclick =
-() => {
-
-  downloadPanel.classList.remove(
-    "show"
-  );
-
-  setStatus(
-    "",
-    false
-  );
-
-};
 
 
 /* =====================================================
