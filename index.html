@@ -1770,8 +1770,7 @@ async function downloadAsBlobURL(
 
 async function loadFFmpeg(){
 
-  if(ffmpegLoaded)
-    return true;
+  if(ffmpegLoaded) return true;
 
   if(ffmpegLoading){
     while(ffmpegLoading){
@@ -1781,77 +1780,247 @@ async function loadFFmpeg(){
   }
 
   ffmpegLoading = true;
-
   engine.classList.add("show");
   engine.textContent = "Загрузка FFmpeg…";
   setStatus("Загрузка видеодвижка…", true);
 
-  try{
+  const objectURLs = [];
 
-    const FFmpegClass = await __auraLoadFFmpegLibrary();
-    if(!FFmpegClass) throw new Error("Класс FFmpeg не найден.");
+  try{
+    /*
+     * IMPORTANT:
+     * FFmpeg 0.12.x UMD has a known Worker path problem.
+     * The bundled 814.ffmpeg.js can be resolved against the
+     * build machine path (file:///home/jeromewu/...).
+     *
+     * We therefore use the documented workaround:
+     * 1) download ffmpeg.js
+     * 2) patch its Worker expression
+     * 3) execute the patched library from a Blob URL
+     * 4) convert 814.ffmpeg.js, ffmpeg-core.js and wasm to Blob URLs
+     * 5) pass those Blob URLs to ffmpeg.load()
+     *
+     * This keeps everything same-origin/network-fetched and avoids
+     * cross-origin Worker restrictions.
+     */
+
+    const base = new URL("./vendor/", document.baseURI).href;
+    const ffmpegJSURL = new URL("ffmpeg.js", base).href;
+    const workerSourceURL = new URL("814.ffmpeg.js", base).href;
+    const coreSourceURL = new URL("ffmpeg-core.js", base).href;
+    const wasmSourceURL = new URL("ffmpeg-core.wasm", base).href;
+
+    console.log("AURA FFmpeg source assets:", {
+      ffmpegJSURL,
+      workerSourceURL,
+      coreSourceURL,
+      wasmSourceURL
+    });
+
+    async function fetchResource(url, label){
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 60000);
+      try{
+        const response = await fetch(url, {
+          method:"GET",
+          cache:"no-store",
+          signal:controller.signal
+        });
+        if(!response.ok){
+          throw new Error(label + " HTTP " + response.status);
+        }
+        const blob = await response.blob();
+        if(!blob.size){
+          throw new Error(label + " пустой");
+        }
+        console.log("AURA:", label, "loaded", blob.size, "bytes");
+        return blob;
+      }catch(error){
+        if(error && error.name === "AbortError"){
+          throw new Error(label + " не загрузился за 60 секунд.");
+        }
+        throw error;
+      }finally{
+        clearTimeout(timer);
+      }
+    }
+
+    /* Load the main UMD wrapper and patch its broken 814 Worker path. */
+    engine.textContent = "Подготовка FFmpeg…";
+    const ffmpegWrapperBlob = await fetchResource(
+      ffmpegJSURL,
+      "ffmpeg.js"
+    );
+    let ffmpegWrapperSource = await ffmpegWrapperBlob.text();
+
+    const workerExpressions = [
+      'new Worker(new URL(e.p+e.u(814),e.b),{type:void 0})',
+      'new Worker(new URL(e.p + e.u(814), e.b),{type:void 0})',
+      'new Worker(new URL(e.p+e.u(814),e.b),{ type: void 0 })',
+      'new Worker(new URL(e.p + e.u(814), e.b),{ type: void 0 })'
+    ];
+
+    let patched = false;
+    for(const expression of workerExpressions){
+      if(ffmpegWrapperSource.includes(expression)){
+        ffmpegWrapperSource = ffmpegWrapperSource.replace(
+          expression,
+          'new Worker(r.workerLoadURL,{type:void 0})'
+        );
+        patched = true;
+        break;
+      }
+    }
+
+    /* Minified fallback: replace the webpack URL construction only. */
+    if(!patched){
+      const before = ffmpegWrapperSource;
+      ffmpegWrapperSource = ffmpegWrapperSource.replace(
+        /new Worker\(new URL\(e\.p\+e\.u\(814\),e\.b\),\{[^}]*\}\)/,
+        'new Worker(r.workerLoadURL,{type:void 0})'
+      );
+      patched = before !== ffmpegWrapperSource;
+    }
+
+    if(!patched){
+      throw new Error(
+        "Не удалось исправить Worker FFmpeg 814. " +
+        "Проверьте, что vendor/ffmpeg.js действительно версии 0.12.10."
+      );
+    }
+
+    const wrapperURL = URL.createObjectURL(
+      new Blob([ffmpegWrapperSource], {type:"text/javascript"})
+    );
+    objectURLs.push(wrapperURL);
+
+    /* Execute patched UMD wrapper. */
+    await new Promise((resolve,reject)=>{
+      const script = document.createElement("script");
+      script.async = false;
+      script.src = wrapperURL;
+      script.onload = resolve;
+      script.onerror = () => reject(
+        new Error("Не удалось запустить patched ffmpeg.js")
+      );
+      (document.head || document.documentElement).appendChild(script);
+    });
+
+    const FFmpegClass =
+      window.FFmpegWASM?.FFmpeg ||
+      window.FFmpeg?.FFmpeg ||
+      (typeof window.FFmpeg === "function" ? window.FFmpeg : null);
+
+    if(!FFmpegClass){
+      throw new Error("FFmpegWASM.FFmpeg не найден после загрузки ffmpeg.js");
+    }
+
     ffmpeg = new FFmpegClass();
 
-    try{ ffmpeg.on("log", ({message})=>console.log("[AURA FFmpeg]",message)); }catch(e){}
-    try{ ffmpeg.on("progress", ({progress})=>{ if(isExporting && typeof progress==="number") setProgress(Math.min(95,Math.max(0,progress*95))); }); }catch(e){}
+    try{
+      ffmpeg.on("log", ({message}) => {
+        console.log("[AURA FFmpeg]", message);
+      });
+    }catch(e){}
+
+    try{
+      ffmpeg.on("progress", ({progress}) => {
+        if(isExporting && typeof progress === "number"){
+          setProgress(
+            Math.min(95, Math.max(0, progress * 95))
+          );
+        }
+      });
+    }catch(e){}
 
     engine.textContent = "Загрузка ядра FFmpeg…";
 
-    const base = new URL("./vendor/", document.baseURI).href;
-    const coreURL = new URL("ffmpeg-core.js", base).href;
-    const wasmURL = new URL("ffmpeg-core.wasm", base).href;
-    const workerURL = new URL("814.ffmpeg.js", base).href;
+    /* Download all three FFmpeg resources and make local Blob URLs. */
+    const [workerBlob, coreBlob, wasmBlob] = await Promise.all([
+      fetchResource(workerSourceURL, "814.ffmpeg.js"),
+      fetchResource(coreSourceURL, "ffmpeg-core.js"),
+      fetchResource(wasmSourceURL, "ffmpeg-core.wasm")
+    ]);
 
-    console.log("AURA FFmpeg assets:",{coreURL,wasmURL,workerLoadURL:workerURL});
+    const workerLoadURL = URL.createObjectURL(
+      new Blob([workerBlob], {type:"text/javascript"})
+    );
+    const coreURL = URL.createObjectURL(
+      new Blob([coreBlob], {type:"text/javascript"})
+    );
+    const wasmURL = URL.createObjectURL(
+      new Blob([wasmBlob], {type:"application/wasm"})
+    );
 
-    await ffmpeg.load({
+    objectURLs.push(workerLoadURL, coreURL, wasmURL);
+
+    console.log("AURA FFmpeg Blob assets ready:", {
       coreURL,
       wasmURL,
-      workerLoadURL: workerURL
+      workerLoadURL
     });
 
-    ffmpegLoaded = true;
+    /*
+     * Official 0.12.x UMD workaround:
+     * workerLoadURL points to the Blob version of 814.ffmpeg.js.
+     */
+    const loadPromise = ffmpeg.load({
+      coreURL,
+      wasmURL,
+      workerLoadURL
+    });
 
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(
+        new Error(
+          "FFmpeg завис при запуске Worker/Core. " +
+          "Проверьте наличие vendor/ffmpeg-core.js, vendor/ffmpeg-core.wasm и vendor/814.ffmpeg.js."
+        )
+      ), 90000);
+    });
+
+    await Promise.race([loadPromise, timeoutPromise]);
+
+    ffmpegLoaded = true;
     engine.textContent = "FFmpeg готов";
     setStatus("", false);
 
-    setTimeout(() => {
-      engine.classList.remove("show");
-    },1200);
+    setTimeout(() => engine.classList.remove("show"), 1200);
 
     console.log(
-      "AURA: FFmpeg " +
-      FFMPEG_VERSION +
-      " loaded successfully."
+      "AURA: FFmpeg " + FFMPEG_VERSION + " loaded successfully."
     );
+
+    /* Keep Blob URLs alive while FFmpeg is being used. */
+    window.__AURA_FFMPEG_OBJECT_URLS__ = objectURLs;
 
     return true;
 
   }catch(error){
 
-    console.error(
-      "AURA FFmpeg load error:",
-      error
-    );
+    console.error("AURA FFmpeg load error:", error);
 
     ffmpegLoaded = false;
     ffmpeg = null;
 
-    engine.textContent = "Ошибка FFmpeg";
+    /* Do not revoke the URLs if load succeeded; on failure they are safe to clean. */
+    for(const url of objectURLs){
+      try{ URL.revokeObjectURL(url); }catch(e){}
+    }
 
-    setStatus(
-      "FFmpeg не удалось загрузить",
-      true
-    );
+    engine.textContent = "Ошибка FFmpeg";
+    setStatus("FFmpeg не удалось загрузить", true);
 
     alert(
       "Не удалось загрузить FFmpeg.\n\n" +
       "Причина:\n" +
-      (error && error.message
-        ? error.message
-        : String(error)) +
+      (error?.message || String(error)) +
       "\n\n" +
-      "Попробуйте обновить страницу через Cmd + Shift + R."
+      "Проверьте, что в папке vendor GitHub Pages есть:\n" +
+      "• ffmpeg.js\n" +
+      "• 814.ffmpeg.js\n" +
+      "• ffmpeg-core.js\n" +
+      "• ffmpeg-core.wasm"
     );
 
     return false;
@@ -1860,7 +2029,6 @@ async function loadFFmpeg(){
     ffmpegLoading = false;
   }
 }
-
 
 /* =====================================================
    LOAD VIDEO
