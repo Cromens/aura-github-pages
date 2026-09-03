@@ -8,7 +8,7 @@
 
 <style>
 :root{
-  --bg:transparent;
+  --bg:#06142f;
   --panel:rgba(40,40,40,.15);
   --panel-strong:rgba(40,40,40,.15);
   --border:rgba(110,110,110,.15);
@@ -34,7 +34,13 @@ body{
 }
 
 body {
-  background: transparent !important;
+  background:var(--bg);
+}
+
+/* При встраивании редактор не перекрывает фон родительского сайта. */
+html.is-embedded,
+html.is-embedded body{
+  background:transparent;
 }
 
 body {
@@ -214,7 +220,7 @@ button{
   align-items:center;
   justify-content:center;
   overflow:hidden;
-  background:#080b11;
+  background:rgba(40,40,40,.15);
 }
 
 .preview-stage{
@@ -544,7 +550,7 @@ video{
   display:flex;
   flex-direction:column;
   gap:5px;
-  background:rgba(7,10,16,.48);
+  background:rgba(40,40,40,.15);
   backdrop-filter:blur(15px);
   -webkit-backdrop-filter:blur(15px);
 }
@@ -553,7 +559,8 @@ video{
   flex:1;
   min-height:0;
   position:relative;
-  overflow:hidden;
+  overflow:visible;
+  margin:0 10px;
   border-radius:6px;
   background:#020305;
 }
@@ -563,6 +570,7 @@ video{
   height:100%;
   display:flex;
   overflow:hidden;
+  border-radius:6px;
 }
 
 .thumb{
@@ -581,13 +589,14 @@ video{
   border-left:2px solid rgba(22,119,255,.75);
   border-right:2px solid rgba(22,119,255,.75);
   pointer-events:none;
+  border-radius:6px;
 }
 
 .trim-handle{
   position:absolute;
   top:-1px;
   bottom:-1px;
-  width:20px;
+  width:24px;
   transform:translateX(-50%);
   border-radius:7px;
   background:var(--accent);
@@ -614,7 +623,7 @@ video{
   position:absolute;
   top:-2px;
   bottom:-2px;
-  width:18px;
+  width:26px;
   transform:translateX(-50%);
   z-index:32;
   cursor:ew-resize;
@@ -640,8 +649,8 @@ video{
   position:absolute;
   left:50%;
   top:-1px;
-  width:9px;
-  height:9px;
+  width:12px;
+  height:12px;
   transform:translate(-50%,-50%);
   border-radius:50%;
   background:#fff;
@@ -653,6 +662,7 @@ video{
   justify-content:space-between;
   color:#536078;
   font-size:9px;
+  padding:0 10px;
 }
 
 /* =====================================================
@@ -671,7 +681,7 @@ video{
   width:56px;
   height:100%;
   border-radius:11px;
-  background:var(--button);
+  background:rgba(40,40,40,.15);
   color:#8e99ab;
   cursor:pointer;
   display:flex;
@@ -694,10 +704,27 @@ video{
   height:100%;
   display:flex;
   align-items:center;
-  gap:7px;
+  gap:6px;
   padding:0 10px;
   border-radius:11px;
-  background:var(--button);
+  background:rgba(40,40,40,.15);
+  border:1px solid rgba(110,110,110,.15);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
+}
+
+.time-field{
+  display:flex;
+  align-items:center;
+  gap:4px;
+}
+
+.time-field span{
+  color:#7d899c;
+  font-size:9px;
+  font-weight:700;
+  text-transform:uppercase;
 }
 
 .time-inputs input{
@@ -706,10 +733,18 @@ video{
   border:0;
   outline:0;
   border-radius:7px;
-  background:rgba(0,0,0,.17);
+  background:rgba(40,40,40,.15);
+  border:1px solid rgba(110,110,110,.15);
+  backdrop-filter:blur(15px);
+  -webkit-backdrop-filter:blur(15px);
   color:#fff;
   text-align:center;
   font-size:11px;
+}
+
+#currentInput{
+  color:#dbe8ff;
+  cursor:default;
 }
 
 .file-info{
@@ -788,6 +823,19 @@ video{
   .save{
     min-width:100px;
   }
+
+  .time-inputs{
+    gap:4px;
+    padding:0 6px;
+  }
+
+  .time-field span{
+    display:none;
+  }
+
+  .time-inputs input{
+    width:58px;
+  }
 }
 
 /* AURA GLASS SYSTEM — FINAL OVERRIDES */
@@ -804,7 +852,7 @@ video{
 .tool,
 .play,
 .time-inputs{
-  background:rgba(40,40,40,.22);
+  background:rgba(40,40,40,.15);
   color:#6E6E6E;
   border:1px solid rgba(110,110,110,.15);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
@@ -904,7 +952,7 @@ video{
 
 .crop-preset{
   border:1px solid rgba(110,110,110,.15);
-  background:rgba(40,40,40,.22);
+  background:rgba(40,40,40,.15);
   color:#6E6E6E;
   border-radius:9px;
   padding:8px 11px;
@@ -1214,15 +1262,33 @@ video{
 
       <div class="time-inputs">
 
-        <input
-          id="startInput"
-          value="00:00.0"
-        >
+        <label class="time-field">
+          <span>От</span>
+          <input
+            id="startInput"
+            value="00:00.0"
+            aria-label="Начало обрезки"
+          >
+        </label>
 
-        <input
-          id="endInput"
-          value="00:00.0"
-        >
+        <label class="time-field">
+          <span>Сейчас</span>
+          <input
+            id="currentInput"
+            value="00:00.0"
+            aria-label="Текущая позиция видео"
+            readonly
+          >
+        </label>
+
+        <label class="time-field">
+          <span>До</span>
+          <input
+            id="endInput"
+            value="00:00.0"
+            aria-label="Конец обрезки"
+          >
+        </label>
 
       </div>
 
@@ -1266,6 +1332,19 @@ video{
 
 <script>
 "use strict";
+
+/*
+ * На отдельной странице GitHub Pages у редактора есть собственный тёмно-синий
+ * фон. В iframe он отключается, чтобы был виден фон сайта, в который редактор
+ * встроен (например, Wix).
+ */
+try{
+  if(window.self !== window.top){
+    document.documentElement.classList.add("is-embedded");
+  }
+}catch(error){
+  document.documentElement.classList.add("is-embedded");
+}
 
 /* =====================================================
    AURA VIDEO EDITOR
@@ -1368,6 +1447,9 @@ const startInput =
 
 const endInput =
   $("endInput");
+
+const currentInput =
+  $("currentInput");
 
 const status =
   $("status");
@@ -2475,6 +2557,7 @@ function updatePlayhead(){
 
   if(!duration){
     playhead.style.left = "0%";
+    currentInput.value = formatTime(0);
     return;
   }
 
@@ -2485,6 +2568,9 @@ function updatePlayhead(){
 
   playhead.style.left =
     percent + "%";
+
+  currentInput.value =
+    formatTime(video.currentTime);
 
   playhead.title =
     "Текущий кадр · " +
